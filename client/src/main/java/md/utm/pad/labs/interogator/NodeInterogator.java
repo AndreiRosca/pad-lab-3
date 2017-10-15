@@ -3,10 +3,7 @@ package md.utm.pad.labs.interogator;
 import md.utm.pad.labs.config.ClientConfiguration;
 
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.SocketException;
+import java.net.*;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -25,24 +22,32 @@ public class NodeInterogator implements Runnable {
 
     public void interogateNodes() {
         try {
-            socket = new DatagramSocket(configuration.getClientPort());
-            InetAddress nodeGroup = InetAddress.getByName(configuration.getNodeMulticastAddress());
-            byte[] buffer = "{ 'type': 'presentRequest' }".getBytes();
-            DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-            packet.setAddress(nodeGroup);
-            packet.setPort(configuration.getNodePort());
-            socket.send(packet);
-            awaitNodeResponses();
+            tryInterogateNodes();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private void tryInterogateNodes() throws IOException {
+        socket = new DatagramSocket(configuration.getClientPort());
+        DatagramPacket packet = makeRequestDatagram();
+        socket.send(packet);
+        awaitNodeResponses();
+    }
+
+    private DatagramPacket makeRequestDatagram() throws UnknownHostException {
+        byte[] buffer = "{ 'type': 'presentRequest' }".getBytes();
+        DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+        packet.setAddress(InetAddress.getByName(configuration.getNodeMulticastAddress()));
+        packet.setPort(configuration.getNodePort());
+        return packet;
     }
 
     private void awaitNodeResponses() {
         try {
             tryAwaitNodeResponses();
         } catch (InterruptedException e) {
-            e.printStackTrace(System.out);
+            throw new RuntimeException(e);
         }
     }
 
@@ -64,13 +69,17 @@ public class NodeInterogator implements Runnable {
     private void tryRun() throws IOException {
         long startTime = System.currentTimeMillis();
         while (!isTimeout(startTime)) {
-            byte[] buffer = new byte[1024];
-            DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+            DatagramPacket packet = makeDatagramPacket();
             socket.receive(packet);
             nodes.add(new String(packet.getData()));
 
             System.out.println("Got response");
         }
+    }
+
+    private DatagramPacket makeDatagramPacket() {
+        byte[] buffer = new byte[configuration.getDatagramPacketSize()];
+        return new DatagramPacket(buffer, buffer.length);
     }
 
     private boolean isTimeout(long startTime) {

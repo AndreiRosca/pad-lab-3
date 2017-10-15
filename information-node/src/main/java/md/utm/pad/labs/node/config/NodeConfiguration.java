@@ -28,4 +28,9 @@ public class NodeConfiguration {
     public String getNodeGroupAddress() {
         return properties.getProperty("nodeGroupAddress");
     }
+
+    public int getDatagramPacketSize() {
+        String datagramPacketSize = properties.getProperty("datagramPacketSizeInBytes");
+        return Integer.valueOf(datagramPacketSize);
+    }
 }

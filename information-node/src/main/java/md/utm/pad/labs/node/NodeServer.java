@@ -13,21 +13,16 @@ import java.util.concurrent.Executors;
 
 public class NodeServer implements Runnable {
     private static final int MAX_THREADS = 3;
-    private static final int MAX_BUFFER_SIZE = 1024;
 
-    private final String nodeGroupAddress;
-    private final int port;
     private final MulticastSocket socket;
     private final ExecutorService executorService = Executors.newFixedThreadPool(MAX_THREADS);
     private final NodeConfiguration configuration;
 
     public NodeServer(NodeConfiguration configuration) {
         try {
-            this.nodeGroupAddress = configuration.getNodeGroupAddress();
-            this.port = configuration.getNodePort();
             this.configuration = configuration;
-            this.socket = new MulticastSocket(port);
-            this.socket.joinGroup(InetAddress.getByName(nodeGroupAddress));
+            this.socket = new MulticastSocket(configuration.getNodePort());
+            this.socket.joinGroup(InetAddress.getByName(configuration.getNodeGroupAddress()));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -45,7 +40,7 @@ public class NodeServer implements Runnable {
     }
 
     private void tryStop() throws IOException {
-        socket.leaveGroup(InetAddress.getByName(nodeGroupAddress));
+        socket.leaveGroup(InetAddress.getByName(configuration.getNodeGroupAddress()));
         executorService.shutdownNow();
         socket.close();
     }
@@ -70,18 +65,22 @@ public class NodeServer implements Runnable {
             String data = new String(packet.getData());
             System.out.println("Got: " + data);
 
-            DatagramPacket responsePacket = makeDatagramPacket();
-            responsePacket.setAddress(packet.getAddress());
-            responsePacket.setPort(configuration.getClientPort());
-            responsePacket.setData(("{ 'type': 'presentResponse', 'data': '" + UUID.randomUUID() +  "' }").getBytes());
-            socket.send(responsePacket);
+            sendResponse(packet);
 
             System.out.println("Response sent");
         }
     }
 
+    private void sendResponse(DatagramPacket packet) throws IOException {
+        DatagramPacket responsePacket = makeDatagramPacket();
+        responsePacket.setAddress(packet.getAddress());
+        responsePacket.setPort(configuration.getClientPort());
+        responsePacket.setData(("{ 'type': 'presentResponse', 'data': '" + UUID.randomUUID() +  "' }").getBytes());
+        socket.send(responsePacket);
+    }
+
     private DatagramPacket makeDatagramPacket() {
-        byte[] buffer = new byte[MAX_BUFFER_SIZE];
+        byte[] buffer = new byte[configuration.getDatagramPacketSize()];
         return new DatagramPacket(buffer, buffer.length);
     }
 }

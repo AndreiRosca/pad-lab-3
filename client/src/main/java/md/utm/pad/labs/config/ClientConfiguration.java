@@ -33,4 +33,9 @@ public class ClientConfiguration {
         String clientPort = properties.getProperty("clientPort");
         return Integer.valueOf(clientPort);
     }
+
+    public int getDatagramPacketSize() {
+        String datagramPacketSize = properties.getProperty("datagramPacketSizeInBytes");
+        return Integer.valueOf(datagramPacketSize);
+    }
 }
