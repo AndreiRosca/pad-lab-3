@@ -1,19 +1,31 @@
 package md.utm.pad.labs.node.config;
 
+import java.io.IOException;
+import java.util.Properties;
+
 public class NodeConfiguration {
-    private int clientPort = 9090;
-    private int nodePort = 9999;
-    private String nodeGroupAddress = "230.1.1.1";
+    private final Properties properties;
+
+    public NodeConfiguration(String propertiesFile) {
+        try {
+            properties = new Properties();
+            properties.load(getClass().getResourceAsStream(propertiesFile));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public int getClientPort() {
-        return clientPort;
+        String clientPort = properties.getProperty("clientPort");
+        return Integer.valueOf(clientPort);
     }
 
     public int getNodePort() {
-        return nodePort;
+        String nodePort = properties.getProperty("nodePort");
+        return Integer.valueOf(nodePort);
     }
 
     public String getNodeGroupAddress() {
-        return nodeGroupAddress;
+        return properties.getProperty("nodeGroupAddress");
     }
 }
