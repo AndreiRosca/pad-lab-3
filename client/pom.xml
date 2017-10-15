@@ -10,6 +10,13 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>client</artifactId>
+    <dependencies>
+        <dependency>
+            <groupId>md.utm.pad.labs</groupId>
+            <artifactId>pad-lab-2</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
 
 
 </project>

@@ -1,6 +1,9 @@
 package md.utm.pad.labs.interogator;
 
 import md.utm.pad.labs.config.ClientConfiguration;
+import md.utm.pad.labs.request.Request;
+import md.utm.pad.labs.request.RequestType;
+import md.utm.pad.labs.service.JsonService;
 
 import java.io.IOException;
 import java.net.*;
@@ -14,10 +17,12 @@ public class NodeInterogator implements Runnable {
     private final ClientConfiguration configuration;
     private final Set<String> nodes = new HashSet<>();
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
+    private final JsonService jsonService;
     private DatagramSocket socket;
 
-    public NodeInterogator(ClientConfiguration configuration) {
+    public NodeInterogator(ClientConfiguration configuration, JsonService jsonService) {
         this.configuration = configuration;
+        this.jsonService = jsonService;
     }
 
     public void interogateNodes() {
@@ -36,7 +41,8 @@ public class NodeInterogator implements Runnable {
     }
 
     private DatagramPacket makeRequestDatagram() throws UnknownHostException {
-        byte[] buffer = "{ 'type': 'presentRequest' }".getBytes();
+        Request request = new Request(RequestType.PRESENT);
+        byte[] buffer = jsonService.toJson(request).getBytes();
         DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
         packet.setAddress(InetAddress.getByName(configuration.getNodeMulticastAddress()));
         packet.setPort(configuration.getNodePort());
