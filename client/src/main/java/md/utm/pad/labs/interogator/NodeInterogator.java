@@ -3,6 +3,7 @@ package md.utm.pad.labs.interogator;
 import md.utm.pad.labs.config.ClientConfiguration;
 import md.utm.pad.labs.request.Request;
 import md.utm.pad.labs.request.RequestType;
+import md.utm.pad.labs.response.Response;
 import md.utm.pad.labs.service.JsonService;
 
 import java.io.IOException;
@@ -15,7 +16,7 @@ import java.util.concurrent.TimeUnit;
 
 public class NodeInterogator implements Runnable {
     private final ClientConfiguration configuration;
-    private final Set<String> nodes = new HashSet<>();
+    private final Set<Response> nodes = new HashSet<>();
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
     private final JsonService jsonService;
     private DatagramSocket socket;
@@ -77,10 +78,13 @@ public class NodeInterogator implements Runnable {
         while (!isTimeout(startTime)) {
             DatagramPacket packet = makeDatagramPacket();
             socket.receive(packet);
-            nodes.add(new String(packet.getData()));
-
-            System.out.println("Got response");
+            addNodeResponse(packet.getData());
         }
+    }
+
+    private void addNodeResponse(byte[] data) {
+        Response response = jsonService.fromJson(new String(data), Response.class);
+        nodes.add(response);
     }
 
     private DatagramPacket makeDatagramPacket() {
@@ -92,7 +96,7 @@ public class NodeInterogator implements Runnable {
         return System.currentTimeMillis() - startTime > configuration.getNodeResponseTimeout();
     }
 
-    public Set<String> getNodes() {
+    public Set<Response> getNodes() {
         return nodes;
     }
 }

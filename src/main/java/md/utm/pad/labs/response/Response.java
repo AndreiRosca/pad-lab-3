@@ -27,4 +27,12 @@ public class Response {
     public void setPayload(String payload) {
         this.payload = payload;
     }
+
+    @Override
+    public String toString() {
+        return "Response{" +
+                "type='" + type + '\'' +
+                ", payload='" + payload + '\'' +
+                '}';
+    }
 }
