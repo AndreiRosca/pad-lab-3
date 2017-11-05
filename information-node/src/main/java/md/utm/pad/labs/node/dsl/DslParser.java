@@ -24,6 +24,7 @@ public class DslParser {
             Pattern.compile("from\\s*(?<entityName>\\w+)\\s*(where\\s*(?<where>\\w+\\s*(<|>|=|!=|>=|<=)\\s*(\\w+|'.+')))?\\s*(group by (?<groupBy>\\w+(,\\s*\\w+)*))?\\s*(order by (?<orderBy>\\w+(,\\s*\\w+)*))?");
 
     private static final Pattern WHERE_PATTERN = Pattern.compile("(?<firstOperand>\\w+)+\\s*(?<operation><|>|=|!=|>=|<=)\\s*(?<secondOperand>\\w+|'.+')");
+    private static final String ORDER_BY_PATTERN = ", ";
 
     public <T> List<T> execute(String dslExpression, Map<String, List<T>> dataSet) throws InvalidDslException {
         Matcher dslMatcher = DSL_PATTERN.matcher(dslExpression);
@@ -35,7 +36,7 @@ public class DslParser {
             if (dataSet.containsKey(entityName)) {
                 List<T> result = dataSet.get(entityName);
                 if (shouldSort(orderByFields))
-                    result.sort(makeComparatorFor(getEntityClass(result), orderByFields));
+                    result.sort(makeComparatorFor(getEntityClass(result), orderByFields.split(ORDER_BY_PATTERN)));
                 if (shouldFilter(whereClause))
                     result = filterResult(result, getEntityClass(result), whereClause);
                 return result;
@@ -75,8 +76,23 @@ public class DslParser {
     }
 
     @SuppressWarnings("unchecked")
-    private <T> Comparator<? super T> makeComparatorFor(Class<?> entityClass, String orderByFields) {
-        return new BeanComparator(entityClass, toGetterName(orderByFields));
+    private <T> Comparator<? super T> makeComparatorFor(Class<?> entityClass, String[] orderByFields) {
+        BeanComparator comparator = new BeanComparator(entityClass, toGetterName(orderByFields[0]));
+        return new Comparator<T>() {
+            public int compare(T first, T second) {
+                BeanComparator currentComparator = comparator;
+                int result = comparator.compare(first, second);
+                if (result != 0)
+                    return result;
+                for (int i = 1; i < orderByFields.length; ++i) {
+                    currentComparator = new BeanComparator(entityClass, toGetterName(orderByFields[i]));
+                    result = currentComparator.compare(first, second);
+                    if (result != 0)
+                        break;
+                }
+                return result;
+            }
+        };
     }
 
     private String toGetterName(String fieldName) {

@@ -24,9 +24,9 @@ public class DslParserTest {
 
     private static List<Student> makeStudentList() {
         List<Student> students = new ArrayList<>();
-        students.add(new Student("Mike Smith", 3));
-        students.add(new Student("John Doe", 2));
-        students.add(new Student("Denis Ritchie", 1));
+        students.add(new Student("Mike Smith", 3, 20));
+        students.add(new Student("John Doe", 2, 21));
+        students.add(new Student("Denis Ritchie", 1, 20));
         return students;
     }
 
@@ -41,6 +41,14 @@ public class DslParserTest {
         List<Student> students = parser.execute("from Student order by name", dataSet);
         List<Student> expected = dataSet.get("Student");
         expected.sort(Comparator.comparing(Student::getName));
+        assertEquals(expected, students);
+    }
+
+    @Test
+    public void testGetAllSortedByMultipleFields() {
+        List<Student> students = parser.execute("from Student order by age, name", dataSet);
+        List<Student> expected = dataSet.get("Student");
+        expected.sort(Comparator.comparing(Student::getAge).thenComparing(Student::getName));
         assertEquals(expected, students);
     }
 

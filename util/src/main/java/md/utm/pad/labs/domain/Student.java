@@ -76,15 +76,17 @@ public class Student implements Comparable<Student> {
         Student student = (Student) o;
 
         if (numberOfReportsToPresent != student.numberOfReportsToPresent) return false;
-        if (!id.equals(student.id)) return false;
+        if (age != student.age) return false;
+        if (id != null ? !id.equals(student.id) : student.id != null) return false;
         return name.equals(student.name);
     }
 
     @Override
     public int hashCode() {
-        int result = id.hashCode();
+        int result = id != null ? id.hashCode() : 0;
         result = 31 * result + name.hashCode();
         result = 31 * result + numberOfReportsToPresent;
+        result = 31 * result + age;
         return result;
     }
 
