@@ -17,7 +17,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class NodeServer implements Runnable {
-    private static final int MAX_THREADS = 3;
+    private static final int MAX_THREADS = 10;
 
     private final MulticastSocket socket;
     private final ExecutorService executorService = Executors.newFixedThreadPool(MAX_THREADS);
@@ -25,13 +25,25 @@ public class NodeServer implements Runnable {
     private final JsonService jsonService;
     private final UdpClientHandler clientHandler;
     private final NodeConsumerServer nodeConsumerServer;
+    private final NodeConsumerServer peerServer;
 
     public NodeServer(NodeConfiguration configuration, JsonService jsonService, UdpClientHandler clientHandler) {
         try {
             this.clientHandler = clientHandler;
             this.jsonService = jsonService;
             this.configuration = configuration;
-            this.nodeConsumerServer = new NodeConsumerServer(executorService, jsonService, configuration, clientHandler.getNodeContext());
+            this.nodeConsumerServer = NodeConsumerServer.newBuilder()
+                    .setExecutorService(executorService)
+                    .setJsonService(jsonService)
+                    .setNodeContext(clientHandler.getNodeContext())
+                    .setPort(configuration.getConsumerTcpPort())
+                    .build();
+            this.peerServer = NodeConsumerServer.newBuilder()
+                    .setExecutorService(executorService)
+                    .setJsonService(jsonService)
+                    .setNodeContext(clientHandler.getNodeContext())
+                    .setPort(configuration.getPeerPort())
+                    .build();
             this.socket = new MulticastSocket(configuration.getNodeDiscoverPort());
             this.socket.joinGroup(InetAddress.getByName(configuration.getNodeDiscoverGroupAddress()));
         } catch (IOException e) {
@@ -42,6 +54,7 @@ public class NodeServer implements Runnable {
     public void start() {
         executorService.submit(this);
         executorService.submit(nodeConsumerServer);
+        executorService.submit(peerServer);
     }
 
     public void stop() {

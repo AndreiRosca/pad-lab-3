@@ -7,8 +7,8 @@ public class ClientConfiguration {
     private final Properties properties;
 
     public ClientConfiguration(String propertiesFile) {
-        properties = new Properties();
         try {
+            properties = new Properties();
             properties.load(getClass().getResourceAsStream(propertiesFile));
         } catch (IOException e) {
             throw new RuntimeException(e);

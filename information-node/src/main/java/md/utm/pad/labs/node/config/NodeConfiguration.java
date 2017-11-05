@@ -3,10 +3,7 @@ package md.utm.pad.labs.node.config;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class NodeConfiguration {
@@ -50,18 +47,26 @@ public class NodeConfiguration {
         if (peerNodes == null)
             return Collections.emptyList();
         return Arrays.stream(peerNodes.split(", "))
-                .map(peer -> {
-                    try {
-                        return new URI(peer);
-                    } catch (URISyntaxException e) {
-                        e.printStackTrace();
-                    }
-                    return null;
-                })
+                .map(this::toUri)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
+    }
+
+    private URI toUri(String uri) {
+        try {
+            return new URI(uri);
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public String getDataFile() {
         return properties.getProperty("dataFile");
+    }
+
+    public int getPeerPort() {
+        String port = properties.getProperty("peerPort");
+        return Integer.valueOf(port);
     }
 }

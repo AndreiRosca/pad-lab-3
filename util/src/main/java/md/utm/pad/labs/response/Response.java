@@ -2,6 +2,7 @@ package md.utm.pad.labs.response;
 
 import md.utm.pad.labs.domain.Student;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -9,13 +10,17 @@ import java.util.List;
  */
 public class Response {
     private String type;
-    private List<Student> responseData;
+    private List<Student> responseData = new ArrayList<>();
 
     public Response() {
     }
 
     public Response(ResponseType responseType) {
         this.type = responseType.toString();
+    }
+
+    public Response(String type) {
+        this.type = type;
     }
 
     public Response(ResponseType responseType, List<Student> students) {

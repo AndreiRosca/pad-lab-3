@@ -1,7 +1,6 @@
 package md.utm.pad.labs.node.tcp;
 
 import md.utm.pad.labs.channel.SocketClientChannel;
-import md.utm.pad.labs.node.config.NodeConfiguration;
 import md.utm.pad.labs.node.context.NodeContext;
 import md.utm.pad.labs.node.tcp.handler.NodeRequestHandler;
 import md.utm.pad.labs.service.JsonService;
@@ -12,18 +11,13 @@ import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 
 public class NodeConsumerServer implements Runnable, AutoCloseable {
-    private final ExecutorService executorService;
-    private final JsonService jsonService;
-    private final NodeConfiguration configuration;
-    private final NodeContext nodeContext;
+    private ExecutorService executorService;
+    private JsonService jsonService;
+    private NodeContext nodeContext;
     private ServerSocket serverSocket;
+    private int port;
 
-    public NodeConsumerServer(ExecutorService executorService, JsonService jsonService, NodeConfiguration configuration,
-                              NodeContext nodeContext) {
-        this.executorService = executorService;
-        this.jsonService = jsonService;
-        this.configuration = configuration;
-        this.nodeContext = nodeContext;
+    private NodeConsumerServer() {
     }
 
     public void run() {
@@ -37,7 +31,7 @@ public class NodeConsumerServer implements Runnable, AutoCloseable {
 
     private void setUpServer() {
         try {
-            serverSocket = new ServerSocket(configuration.getConsumerTcpPort());
+            serverSocket = new ServerSocket(port);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -47,7 +41,7 @@ public class NodeConsumerServer implements Runnable, AutoCloseable {
         while (true) {
             Socket socket = serverSocket.accept();
             executorService.submit(new NodeConsumerHandler(new SocketClientChannel(socket), jsonService,
-                    new NodeRequestHandler(nodeContext)));
+                    new NodeRequestHandler(nodeContext, jsonService)));
         }
     }
 
@@ -56,6 +50,49 @@ public class NodeConsumerServer implements Runnable, AutoCloseable {
             executorService.shutdownNow();
             serverSocket.close();
         } catch (IOException e) {
+        }
+    }
+
+    public static NodeConsumerServerBuilder newBuilder() {
+        return new NodeConsumerServerBuilder();
+    }
+
+    public static final class NodeConsumerServerBuilder {
+        private ExecutorService executorService;
+        private JsonService jsonService;
+        private NodeContext nodeContext;
+        private int port;
+
+        private NodeConsumerServerBuilder() {
+        }
+
+        public NodeConsumerServerBuilder setExecutorService(ExecutorService executorService) {
+            this.executorService = executorService;
+            return this;
+        }
+
+        public NodeConsumerServerBuilder setJsonService(JsonService jsonService) {
+            this.jsonService = jsonService;
+            return this;
+        }
+
+        public NodeConsumerServerBuilder setNodeContext(NodeContext nodeContext) {
+            this.nodeContext = nodeContext;
+            return this;
+        }
+
+        public NodeConsumerServerBuilder setPort(int port) {
+            this.port = port;
+            return this;
+        }
+
+        public NodeConsumerServer build() {
+            NodeConsumerServer nodeConsumerServer = new NodeConsumerServer();
+            nodeConsumerServer.jsonService = this.jsonService;
+            nodeConsumerServer.nodeContext = this.nodeContext;
+            nodeConsumerServer.executorService = this.executorService;
+            nodeConsumerServer.port = this.port;
+            return nodeConsumerServer;
         }
     }
 }
