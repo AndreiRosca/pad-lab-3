@@ -4,17 +4,34 @@ import md.utm.pad.labs.domain.Student;
 import md.utm.pad.labs.node.config.NodeConfiguration;
 import md.utm.pad.labs.repository.StudentRepository;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class InMemoryNodeContext implements NodeContext {
     private final NodeConfiguration nodeConfiguration;
-    private Set<Student> students = Collections.synchronizedSet(new TreeSet<>());
+    private List<Student> students = Collections.synchronizedList(new ArrayList<>());
 
-    public InMemoryNodeContext(StudentRepository repository, NodeConfiguration nodeConfiguration) {
+    public InMemoryNodeContext(NodeConfiguration nodeConfiguration) {
         this.nodeConfiguration = nodeConfiguration;
-        students.addAll(repository.findAll());
+        loadData();
+    }
+
+    private void loadData() {
+        String dataFile = nodeConfiguration.getDataFile();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream(dataFile)))) {
+            List<Student> students = reader.lines()
+                    .map(Student::fromCsvString)
+                    .filter(s -> s != null)
+                    .collect(Collectors.toList());
+            this.students = Collections.synchronizedList(students);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -25,5 +42,15 @@ public class InMemoryNodeContext implements NodeContext {
     @Override
     public int getNumberOfConnections() {
         return nodeConfiguration.getPeerNodes().size();
+    }
+
+    @Override
+    public int getNodePort() {
+        return nodeConfiguration.getConsumerTcpPort();
+    }
+
+    @Override
+    public List<Student> getAll() {
+        return students;
     }
 }

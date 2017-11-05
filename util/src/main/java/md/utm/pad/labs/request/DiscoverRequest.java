@@ -1,16 +1,13 @@
 package md.utm.pad.labs.request;
 
-/**
- * Created by anrosca on Nov, 2017
- */
-public class Request {
+public class DiscoverRequest {
     private String type;
 
-    public Request() {
+    public DiscoverRequest(DiscoverRequestType requestType) {
+        this.type = requestType.toString();
     }
 
-    public Request(RequestType requestType) {
-        this.type = requestType.toString();
+    protected DiscoverRequest() {
     }
 
     public String getType() {
@@ -23,7 +20,7 @@ public class Request {
 
     @Override
     public String toString() {
-        return "Request{" +
+        return "DiscoverRequest{" +
                 "type='" + type + '\'' +
                 '}';
     }

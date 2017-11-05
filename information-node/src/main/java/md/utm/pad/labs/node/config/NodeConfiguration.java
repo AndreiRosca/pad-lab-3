@@ -60,4 +60,8 @@ public class NodeConfiguration {
                 })
                 .collect(Collectors.toList());
     }
+
+    public String getDataFile() {
+        return properties.getProperty("dataFile");
+    }
 }

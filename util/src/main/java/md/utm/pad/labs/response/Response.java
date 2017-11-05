@@ -1,19 +1,26 @@
 package md.utm.pad.labs.response;
 
-public class Response implements Comparable<Response> {
-    private String type;
-    private int collectionSize;
-    private int numberOfConnections;
-    private String nodeAddress;
-    private int nodePort;
+import md.utm.pad.labs.domain.Student;
 
-    protected Response() {
+import java.util.List;
+
+/**
+ * Created by anrosca on Nov, 2017
+ */
+public class Response {
+    private String type;
+    private List<Student> responseData;
+
+    public Response() {
     }
 
-    public Response(ResponseType type, int collectionSize, int numberOfConnections) {
-        this.type = type.toString();
-        this.collectionSize = collectionSize;
-        this.numberOfConnections = numberOfConnections;
+    public Response(ResponseType responseType) {
+        this.type = responseType.toString();
+    }
+
+    public Response(ResponseType responseType, List<Student> students) {
+        this(responseType);
+        this.responseData = students;
     }
 
     public String getType() {
@@ -24,69 +31,19 @@ public class Response implements Comparable<Response> {
         this.type = type;
     }
 
-    public Integer getCollectionSize() {
-        return collectionSize;
+    public List<Student> getResponseData() {
+        return responseData;
     }
 
-    public void setCollectionSize(int collectionSize) {
-        this.collectionSize = collectionSize;
-    }
-
-    public Integer getNumberOfConnections() {
-        return numberOfConnections;
-    }
-
-    public void setNumberOfConnections(int numberOfConnections) {
-        this.numberOfConnections = numberOfConnections;
-    }
-
-    public String getNodeAddress() {
-        return nodeAddress;
-    }
-
-    public void setNodeAddress(String nodeAddress) {
-        this.nodeAddress = nodeAddress;
-    }
-
-    public int getNodePort() {
-        return nodePort;
-    }
-
-    public void setNodePort(int nodePort) {
-        this.nodePort = nodePort;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Response)) return false;
-
-        Response response = (Response) o;
-
-        if (collectionSize != response.collectionSize) return false;
-        if (numberOfConnections != response.numberOfConnections) return false;
-        return type != null ? type.equals(response.type) : response.type == null;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = type != null ? type.hashCode() : 0;
-        result = 31 * result + collectionSize;
-        result = 31 * result + numberOfConnections;
-        return result;
+    public void setResponseData(List<Student> responseData) {
+        this.responseData = responseData;
     }
 
     @Override
     public String toString() {
         return "Response{" +
                 "type='" + type + '\'' +
-                ", collectionSize=" + collectionSize +
-                ", numberOfConnections=" + numberOfConnections +
+                ", responseData=" + responseData +
                 '}';
-    }
-
-    @Override
-    public int compareTo(Response other) {
-        return -Integer.compare(numberOfConnections, other.numberOfConnections);
     }
 }

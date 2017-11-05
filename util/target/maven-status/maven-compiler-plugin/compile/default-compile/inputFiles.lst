@@ -1,6 +1,13 @@
 C:\Projects\EnHub\pad-lab-2\util\src\main\java\md\utm\pad\labs\response\ResponseType.java
+C:\Projects\EnHub\pad-lab-2\util\src\main\java\md\utm\pad\labs\request\DiscoverRequestType.java
+C:\Projects\EnHub\pad-lab-2\util\src\main\java\md\utm\pad\labs\response\DiscoverResponse.java
+C:\Projects\EnHub\pad-lab-2\util\src\main\java\md\utm\pad\labs\request\DiscoverRequest.java
+C:\Projects\EnHub\pad-lab-2\util\src\main\java\md\utm\pad\labs\response\DiscoverResponseType.java
+C:\Projects\EnHub\pad-lab-2\util\src\main\java\md\utm\pad\labs\request\RequestType.java
+C:\Projects\EnHub\pad-lab-2\util\src\main\java\md\utm\pad\labs\service\impl\JacksonJsonService.java
+C:\Projects\EnHub\pad-lab-2\util\src\main\java\md\utm\pad\labs\channel\SocketClientChannel.java
+C:\Projects\EnHub\pad-lab-2\util\src\main\java\md\utm\pad\labs\domain\Student.java
 C:\Projects\EnHub\pad-lab-2\util\src\main\java\md\utm\pad\labs\response\Response.java
 C:\Projects\EnHub\pad-lab-2\util\src\main\java\md\utm\pad\labs\request\Request.java
 C:\Projects\EnHub\pad-lab-2\util\src\main\java\md\utm\pad\labs\service\JsonService.java
-C:\Projects\EnHub\pad-lab-2\util\src\main\java\md\utm\pad\labs\request\RequestType.java
-C:\Projects\EnHub\pad-lab-2\util\src\main\java\md\utm\pad\labs\service\impl\JacksonJsonService.java
+C:\Projects\EnHub\pad-lab-2\util\src\main\java\md\utm\pad\labs\channel\ClientChannel.java
