@@ -92,6 +92,38 @@ public class DslParserTest {
                 .collect(Collectors.toList()), students);
     }
 
+    @Test
+    public void testGetAllFilteredEQNull() {
+        dataSet.get("Student").add(new Student(null, 1));
+        List<Student> students = parser.execute("from Student where name = null", dataSet);
+        assertEquals(dataSet.get("Student").stream()
+                .filter(s -> s.getName() == null)
+                .collect(Collectors.toList()), students);
+    }
+
+    @Test
+    public void testGetAllFilteredEQString() {
+        List<Student> students = parser.execute("from Student where name = 'Mike Smith'", dataSet);
+        assertEquals(dataSet.get("Student").stream()
+                .filter(s -> s.getName().equals("Mike Smith"))
+                .collect(Collectors.toList()), students);
+    }
+
+    @Test
+    public void testGetAllFilteredEQProperty() {
+        dataSet.get("Student").add(new Student("Vasya", 1, 1));
+        List<Student> students = parser.execute("from Student where numberOfReportsToPresent = age", dataSet);
+        assertEquals(dataSet.get("Student").stream()
+                .filter(s -> s.getNumberOfReportsToPresent() == s.getAge())
+                .collect(Collectors.toList()), students);
+    }
+
+    @Test
+    public void testGetAllFilteredEQProperty_WithIncompatibleTypes() {
+        List<Student> students = parser.execute("from Student where name = age", dataSet);
+        assertEquals(Collections.emptyList(), students);
+    }
+
     @Ignore
     @Test(expected = DslParser.InvalidDslException.class)
     public void testGetAllFilteredWithInvalidOperation() {

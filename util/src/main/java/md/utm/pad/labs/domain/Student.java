@@ -7,6 +7,7 @@ public class Student implements Comparable<Student> {
     private Long id;
     private String name;
     private int numberOfReportsToPresent;
+    private int age;
 
     public Student() {
     }
@@ -14,6 +15,11 @@ public class Student implements Comparable<Student> {
     public Student(String name, int numberOfReportsToPresent) {
         this.name = name;
         this.numberOfReportsToPresent = numberOfReportsToPresent;
+    }
+
+    public Student(String name, int numberOfReportsToPresent, int age) {
+        this(name, numberOfReportsToPresent);
+        this.age = age;
     }
 
     public Long getId() {
@@ -38,6 +44,14 @@ public class Student implements Comparable<Student> {
 
     public void setNumberOfReportsToPresent(int numberOfReportsToPresent) {
         this.numberOfReportsToPresent = numberOfReportsToPresent;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
     }
 
     @Override
