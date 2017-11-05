@@ -4,27 +4,27 @@ package md.utm.pad.labs.request;
  * Created by anrosca on Nov, 2017
  */
 public class Request {
-    private String type;
+    private String request;
 
     public Request() {
     }
 
-    public Request(RequestType requestType) {
-        this.type = requestType.toString();
+    public Request(String request) {
+        this.request = request;
     }
 
-    public String getType() {
-        return type;
+    public String getRequest() {
+        return request;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public void setRequest(String request) {
+        this.request = request;
     }
 
     @Override
     public String toString() {
         return "Request{" +
-                "type='" + type + '\'' +
+                "request='" + request + '\'' +
                 '}';
     }
 }

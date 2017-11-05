@@ -2,11 +2,11 @@ package md.utm.pad.labs.node.tcp.handler;
 
 import md.utm.pad.labs.channel.ClientChannel;
 import md.utm.pad.labs.channel.SocketClientChannel;
+import md.utm.pad.labs.domain.Student;
 import md.utm.pad.labs.node.context.NodeContext;
+import md.utm.pad.labs.node.dsl.DslParser;
 import md.utm.pad.labs.request.Request;
-import md.utm.pad.labs.request.RequestType;
 import md.utm.pad.labs.response.Response;
-import md.utm.pad.labs.response.ResponseType;
 import md.utm.pad.labs.service.JsonService;
 import org.apache.log4j.Logger;
 
@@ -14,7 +14,6 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.URI;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -22,7 +21,6 @@ import java.util.stream.Collectors;
  */
 public class NodeRequestHandler {
     private static final Logger LOGGER = Logger.getLogger(NodeRequestHandler.class);
-    private final Map<String, Function<Request, Optional<Response>>> requestHandlers = new HashMap<>();
 
     private final NodeContext nodeContext;
     private final JsonService jsonService;
@@ -30,28 +28,23 @@ public class NodeRequestHandler {
     public NodeRequestHandler(NodeContext nodeContext, JsonService jsonService) {
         this.nodeContext = nodeContext;
         this.jsonService = jsonService;
-        setUpRequestHandlers();
-    }
-
-    private void setUpRequestHandlers() {
-        requestHandlers.put(RequestType.GET_ALL.toString(), this::handleGetAllRequest);
-    }
-
-    private Optional<Response> handleGetAllRequest(Request request) {
-        Response nodeResponse = new Response(ResponseType.GET_ALL, nodeContext.getAll());
-        return Optional.of(nodeResponse);
     }
 
     public Optional<Response> handleRequest(Request request) {
         LOGGER.info("Got request: " + request);
         List<Response> responses = sendRequestToPeersAndAwaitResponse(request);
-        Function<Request, Optional<Response>> handler = requestHandlers.get(request.getType());
-        return mergeResponses(responses, handler.apply(request));
+        DslParser parser = new DslParser();
+        List<Student> resultData = parser.execute(request.getRequest(), prepareDataset());
+        return mergeResponses(responses, new Response(request.getRequest(), resultData));
     }
 
-    private Optional<Response> mergeResponses(List<Response> responses, Optional<Response> currentNodeResponse) {
+    private Map<String, List<Student>> prepareDataset() {
+        return Collections.singletonMap(Student.class.getSimpleName(), nodeContext.getAll());
+    }
+
+    private Optional<Response> mergeResponses(List<Response> responses, Response currentNodeResponse) {
         Response response = new Response();
-        currentNodeResponse.ifPresent(r -> response.getResponseData().addAll(r.getResponseData()));
+        response.getResponseData().addAll(currentNodeResponse.getResponseData());
         response.getResponseData().addAll(
                 responses.stream()
                         .flatMap(r -> r.getResponseData().stream())

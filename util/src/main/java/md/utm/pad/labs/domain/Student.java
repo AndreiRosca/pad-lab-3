@@ -54,6 +54,26 @@ public class Student implements Comparable<Student> {
                 '}';
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Student)) return false;
+
+        Student student = (Student) o;
+
+        if (numberOfReportsToPresent != student.numberOfReportsToPresent) return false;
+        if (!id.equals(student.id)) return false;
+        return name.equals(student.name);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = id.hashCode();
+        result = 31 * result + name.hashCode();
+        result = 31 * result + numberOfReportsToPresent;
+        return result;
+    }
+
     public static Student fromCsvString(String csv) {
         Pattern pattern = Pattern.compile("(.+), (\\d+)");
         Matcher matcher = pattern.matcher(csv);

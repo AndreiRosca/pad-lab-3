@@ -15,15 +15,11 @@ public class Response {
     public Response() {
     }
 
-    public Response(ResponseType responseType) {
-        this.type = responseType.toString();
-    }
-
     public Response(String type) {
         this.type = type;
     }
 
-    public Response(ResponseType responseType, List<Student> students) {
+    public Response(String responseType, List<Student> students) {
         this(responseType);
         this.responseData = students;
     }

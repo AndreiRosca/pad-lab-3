@@ -5,7 +5,6 @@ import md.utm.pad.labs.channel.SocketClientChannel;
 import md.utm.pad.labs.config.ClientConfiguration;
 import md.utm.pad.labs.interogator.NodeInterogator;
 import md.utm.pad.labs.request.Request;
-import md.utm.pad.labs.request.RequestType;
 import md.utm.pad.labs.response.DiscoverResponse;
 import md.utm.pad.labs.response.Response;
 import md.utm.pad.labs.service.impl.JacksonJsonService;
@@ -57,7 +56,7 @@ public class Client implements AutoCloseable {
     }
 
     public void getAll() {
-        Request request = new Request(RequestType.GET_ALL);
+        Request request = new Request("from Student");
         channel.write(jsonService.toJson(request));
         Response response = jsonService.fromJson(readJsonRequest(), Response.class);
         System.out.println(response);
