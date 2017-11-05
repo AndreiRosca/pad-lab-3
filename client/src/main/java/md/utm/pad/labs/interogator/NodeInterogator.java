@@ -8,15 +8,15 @@ import md.utm.pad.labs.service.JsonService;
 
 import java.io.IOException;
 import java.net.*;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 public class NodeInterogator implements Runnable {
     private final ClientConfiguration configuration;
-    private final Set<Response> nodes = new HashSet<>();
+    private final List<Response> nodes = new ArrayList<>();
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
     private final JsonService jsonService;
     private DatagramSocket socket;
@@ -96,7 +96,7 @@ public class NodeInterogator implements Runnable {
         return System.currentTimeMillis() - startTime > configuration.getNodeResponseTimeout();
     }
 
-    public Set<Response> getNodes() {
+    public List<Response> getNodes() {
         return nodes;
     }
 }

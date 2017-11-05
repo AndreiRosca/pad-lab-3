@@ -16,11 +16,11 @@ public class ClientConfiguration {
     }
 
     public String getNodeMulticastAddress() {
-        return properties.getProperty("nodeMulticastAddress");
+        return properties.getProperty("nodeDiscoverMulticastAddress");
     }
 
     public int getNodePort() {
-        String nodePort = properties.getProperty("nodePort");
+        String nodePort = properties.getProperty("nodeDiscoverPort");
         return Integer.valueOf(nodePort);
     }
 

@@ -13,7 +13,7 @@
     <dependencies>
         <dependency>
             <groupId>md.utm.pad.labs</groupId>
-            <artifactId>pad-lab-2</artifactId>
+            <artifactId>util</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
     </dependencies>

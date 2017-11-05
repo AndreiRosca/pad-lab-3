@@ -4,8 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import md.utm.pad.labs.service.JsonService;
 
-import java.io.IOException;
-
 public class JacksonJsonService implements JsonService {
     @Override
     public <T> String toJson(T object) {

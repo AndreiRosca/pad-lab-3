@@ -1,0 +1,14 @@
+C:\Projects\EnHub\pad-lab-2\information-node\src\main\java\md\utm\pad\labs\node\config\NodeConfiguration.java
+C:\Projects\EnHub\pad-lab-2\information-node\src\main\java\md\utm\pad\labs\repository\StudentRepository.java
+C:\Projects\EnHub\pad-lab-2\information-node\src\main\java\md\utm\pad\labs\handler\DefaultClientHandler.java
+C:\Projects\EnHub\pad-lab-2\information-node\src\main\java\md\utm\pad\labs\node\context\InMemoryNodeContext.java
+C:\Projects\EnHub\pad-lab-2\information-node\src\main\java\md\utm\pad\labs\channel\ClientChannel.java
+C:\Projects\EnHub\pad-lab-2\information-node\src\main\java\md\utm\pad\labs\domain\Student.java
+C:\Projects\EnHub\pad-lab-2\information-node\src\main\java\md\utm\pad\labs\channel\SocketClientChannel.java
+C:\Projects\EnHub\pad-lab-2\information-node\src\main\java\md\utm\pad\labs\handler\UdpClientHandler.java
+C:\Projects\EnHub\pad-lab-2\information-node\src\main\java\md\utm\pad\labs\node\NodeRunner.java
+C:\Projects\EnHub\pad-lab-2\information-node\src\main\java\md\utm\pad\labs\node\NodeServer.java
+C:\Projects\EnHub\pad-lab-2\information-node\src\main\java\md\utm\pad\labs\repository\InMemoryStudentRepository.java
+C:\Projects\EnHub\pad-lab-2\information-node\src\main\java\md\utm\pad\labs\node\tcp\NodeConsumerServer.java
+C:\Projects\EnHub\pad-lab-2\information-node\src\main\java\md\utm\pad\labs\node\context\NodeContext.java
+C:\Projects\EnHub\pad-lab-2\information-node\src\main\java\md\utm\pad\labs\node\tcp\NodeConsumerHandler.java

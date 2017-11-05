@@ -2,6 +2,7 @@ package md.utm.pad.labs.node;
 
 import md.utm.pad.labs.handler.UdpClientHandler;
 import md.utm.pad.labs.node.config.NodeConfiguration;
+import md.utm.pad.labs.node.tcp.NodeConsumerServer;
 import md.utm.pad.labs.request.Request;
 import md.utm.pad.labs.response.Response;
 import md.utm.pad.labs.service.JsonService;
@@ -23,14 +24,16 @@ public class NodeServer implements Runnable {
     private final NodeConfiguration configuration;
     private final JsonService jsonService;
     private final UdpClientHandler clientHandler;
+    private final NodeConsumerServer nodeConsumerServer;
 
     public NodeServer(NodeConfiguration configuration, JsonService jsonService, UdpClientHandler clientHandler) {
         try {
             this.clientHandler = clientHandler;
             this.jsonService = jsonService;
             this.configuration = configuration;
-            this.socket = new MulticastSocket(configuration.getNodePort());
-            this.socket.joinGroup(InetAddress.getByName(configuration.getNodeGroupAddress()));
+            this.nodeConsumerServer = new NodeConsumerServer(executorService, jsonService, configuration);
+            this.socket = new MulticastSocket(configuration.getNodeDiscoverPort());
+            this.socket.joinGroup(InetAddress.getByName(configuration.getNodeDiscoverGroupAddress()));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -38,6 +41,7 @@ public class NodeServer implements Runnable {
 
     public void start() {
         executorService.submit(this);
+        executorService.submit(nodeConsumerServer);
     }
 
     public void stop() {
@@ -48,7 +52,8 @@ public class NodeServer implements Runnable {
     }
 
     private void tryStop() throws IOException {
-        socket.leaveGroup(InetAddress.getByName(configuration.getNodeGroupAddress()));
+        nodeConsumerServer.close();
+        socket.leaveGroup(InetAddress.getByName(configuration.getNodeDiscoverGroupAddress()));
         executorService.shutdownNow();
         socket.close();
     }
@@ -71,22 +76,22 @@ public class NodeServer implements Runnable {
             socket.receive(packet);
             Request request = jsonService.fromJson(new String(packet.getData()), Request.class);
             Optional<Response> response = clientHandler.handleRequest(request);
-            response.ifPresent((r) -> sendResponse(packet.getAddress(), r));
+            response.ifPresent((r) -> sendResponse(packet.getAddress(), packet.getPort(), r));
         }
     }
 
-    private void sendResponse(InetAddress address, Response response) {
+    private void sendResponse(InetAddress address, int port, Response response) {
         try {
-            trySendResponse(address, response);
+            trySendResponse(address, port, response);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private void trySendResponse(InetAddress address, Response response) throws IOException {
+    private void trySendResponse(InetAddress address, int port, Response response) throws IOException {
         DatagramPacket responsePacket = makeDatagramPacket();
         responsePacket.setAddress(address);
-        responsePacket.setPort(configuration.getClientPort());
+        responsePacket.setPort(port);
         responsePacket.setData(jsonService.toJson(response).getBytes());
         socket.send(responsePacket);
     }
