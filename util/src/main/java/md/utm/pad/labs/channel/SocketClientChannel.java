@@ -32,7 +32,8 @@ public class SocketClientChannel implements ClientChannel {
 
     @Override
     public void write(String data) {
-        writer.write(data);
+        writer.println(data);
+        writer.println();
         writer.flush();
     }
 

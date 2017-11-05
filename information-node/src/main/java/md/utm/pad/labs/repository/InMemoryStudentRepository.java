@@ -12,9 +12,9 @@ public class InMemoryStudentRepository implements StudentRepository {
     private static final Map<Long, Student> students = new ConcurrentHashMap<>();
 
     static {
-        createStudent(new Student("Mike Smith"));
-        createStudent(new Student("John Doe"));
-        createStudent(new Student("Denis Ritchie"));
+        createStudent(new Student("Mike Smith", 2));
+        createStudent(new Student("John Doe", 1));
+        createStudent(new Student("Denis Ritchie", 3));
     }
 
     private static Student createStudent(Student student) {

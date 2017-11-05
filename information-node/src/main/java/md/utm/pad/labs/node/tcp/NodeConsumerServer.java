@@ -1,8 +1,9 @@
 package md.utm.pad.labs.node.tcp;
 
-import md.utm.pad.labs.channel.ClientChannel;
 import md.utm.pad.labs.channel.SocketClientChannel;
 import md.utm.pad.labs.node.config.NodeConfiguration;
+import md.utm.pad.labs.node.context.NodeContext;
+import md.utm.pad.labs.node.tcp.handler.NodeRequestHandler;
 import md.utm.pad.labs.service.JsonService;
 
 import java.io.IOException;
@@ -14,12 +15,15 @@ public class NodeConsumerServer implements Runnable, AutoCloseable {
     private final ExecutorService executorService;
     private final JsonService jsonService;
     private final NodeConfiguration configuration;
+    private final NodeContext nodeContext;
     private ServerSocket serverSocket;
 
-    public NodeConsumerServer(ExecutorService executorService, JsonService jsonService, NodeConfiguration configuration) {
+    public NodeConsumerServer(ExecutorService executorService, JsonService jsonService, NodeConfiguration configuration,
+                              NodeContext nodeContext) {
         this.executorService = executorService;
         this.jsonService = jsonService;
         this.configuration = configuration;
+        this.nodeContext = nodeContext;
     }
 
     public void run() {
@@ -42,12 +46,14 @@ public class NodeConsumerServer implements Runnable, AutoCloseable {
     private void serveClients() throws IOException {
         while (true) {
             Socket socket = serverSocket.accept();
-            executorService.submit(new NodeConsumerHandler(new SocketClientChannel(socket)));
+            executorService.submit(new NodeConsumerHandler(new SocketClientChannel(socket), jsonService,
+                    new NodeRequestHandler(nodeContext)));
         }
     }
 
     public void close() {
         try {
+            executorService.shutdownNow();
             serverSocket.close();
         } catch (IOException e) {
         }

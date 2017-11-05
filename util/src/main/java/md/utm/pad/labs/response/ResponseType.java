@@ -1,14 +1,23 @@
 package md.utm.pad.labs.response;
 
+/**
+ * Created by anrosca on Nov, 2017
+ */
 public enum ResponseType {
-    PRESENT_RESPONSE("presentResponse");
 
-    private String responseType;
+    GET_ALL("getAll");
+
+    private final String responseType;
 
     ResponseType(String responseType) {
         this.responseType = responseType;
     }
 
+    public String getResponseType() {
+        return responseType;
+    }
+
+    @Override
     public String toString() {
         return responseType;
     }

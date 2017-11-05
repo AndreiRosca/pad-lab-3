@@ -4,13 +4,13 @@ import md.utm.pad.labs.domain.Student;
 import md.utm.pad.labs.node.config.NodeConfiguration;
 import md.utm.pad.labs.repository.StudentRepository;
 
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.List;
 
 public class InMemoryNodeContext implements NodeContext {
     private final NodeConfiguration nodeConfiguration;
-    private Set<Student> students = Collections.synchronizedSet(new TreeSet<>());
+    private List<Student> students = Collections.synchronizedList(new ArrayList<>());
 
     public InMemoryNodeContext(StudentRepository repository, NodeConfiguration nodeConfiguration) {
         this.nodeConfiguration = nodeConfiguration;
@@ -25,5 +25,15 @@ public class InMemoryNodeContext implements NodeContext {
     @Override
     public int getNumberOfConnections() {
         return nodeConfiguration.getPeerNodes().size();
+    }
+
+    @Override
+    public int getNodePort() {
+        return nodeConfiguration.getConsumerTcpPort();
+    }
+
+    @Override
+    public List<Student> getAll() {
+        return students;
     }
 }
