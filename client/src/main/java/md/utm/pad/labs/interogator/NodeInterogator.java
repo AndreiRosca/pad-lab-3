@@ -5,6 +5,7 @@ import md.utm.pad.labs.request.DiscoverRequest;
 import md.utm.pad.labs.request.DiscoverRequestType;
 import md.utm.pad.labs.response.DiscoverResponse;
 import md.utm.pad.labs.service.JsonService;
+import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.net.*;
@@ -15,6 +16,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 public class NodeInterogator implements Runnable {
+    private static final Logger LOGGER = Logger.getLogger(NodeInterogator.class);
+
     private final ClientConfiguration configuration;
     private final List<DiscoverResponse> nodes = new ArrayList<>();
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
@@ -69,7 +72,7 @@ public class NodeInterogator implements Runnable {
         try {
             tryRun();
         } catch (IOException e) {
-            System.out.println("Interogator socket closed");
+            LOGGER.info("Node interogation finished.");
         }
     }
 

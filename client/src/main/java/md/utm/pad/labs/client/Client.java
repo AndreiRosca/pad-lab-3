@@ -9,6 +9,7 @@ import md.utm.pad.labs.request.RequestType;
 import md.utm.pad.labs.response.DiscoverResponse;
 import md.utm.pad.labs.response.Response;
 import md.utm.pad.labs.service.impl.JacksonJsonService;
+import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -18,6 +19,8 @@ import java.util.Optional;
  * Created by anrosca on Nov, 2017
  */
 public class Client implements AutoCloseable {
+    private static final Logger LOGGER = Logger.getLogger(Client.class);
+
     private final NodeInterogator interogator;
     private final JacksonJsonService jsonService;
     private MavenNode mavenNode;
@@ -36,7 +39,7 @@ public class Client implements AutoCloseable {
         maven.ifPresent(r -> {
             mavenNode =  new MavenNode(r.getNodeAddress(), r.getNodePort());
         });
-        System.out.println(mavenNode);
+        LOGGER.info("Maven node: " + mavenNode);
     }
 
     public void connectToMaven() {

@@ -8,45 +8,55 @@ import md.utm.pad.labs.request.RequestType;
 import md.utm.pad.labs.response.Response;
 import md.utm.pad.labs.response.ResponseType;
 import md.utm.pad.labs.service.JsonService;
+import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.net.Socket;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
  * Created by anrosca on Nov, 2017
  */
 public class NodeRequestHandler {
+    private static final Logger LOGGER = Logger.getLogger(NodeRequestHandler.class);
+    private final Map<String, Function<Request, Optional<Response>>> requestHandlers = new HashMap<>();
+
     private final NodeContext nodeContext;
     private final JsonService jsonService;
 
     public NodeRequestHandler(NodeContext nodeContext, JsonService jsonService) {
         this.nodeContext = nodeContext;
         this.jsonService = jsonService;
+        setUpRequestHandlers();
+    }
+
+    private void setUpRequestHandlers() {
+        requestHandlers.put(RequestType.GET_ALL.toString(), this::handleGetAllRequest);
+    }
+
+    private Optional<Response> handleGetAllRequest(Request request) {
+        Response nodeResponse = new Response(ResponseType.GET_ALL, nodeContext.getAll());
+        return Optional.of(nodeResponse);
     }
 
     public Optional<Response> handleRequest(Request request) {
-        System.out.println("Got request: " + request);
+        LOGGER.info("Got request: " + request);
         List<Response> responses = sendRequestToPeersAndAwaitResponse(request);
-        if (request.getType().equalsIgnoreCase(RequestType.GET_ALL.toString())) {
-            Response currentNodeResponse = new Response(ResponseType.GET_ALL, nodeContext.getAll());
-            Response response = mergeResponses(responses, currentNodeResponse);
-            return Optional.of(response);
-        }
-        return Optional.empty();
+        Function<Request, Optional<Response>> handler = requestHandlers.get(request.getType());
+        return mergeResponses(responses, handler.apply(request));
     }
 
-    private Response mergeResponses(List<Response> responses, Response currentNodeResponse) {
-        Response response = new Response(currentNodeResponse.getType());
-        response.getResponseData().addAll(currentNodeResponse.getResponseData());
-        response.getResponseData().addAll(responses.stream()
-            .flatMap(r -> r.getResponseData().stream())
-            .collect(Collectors.toList()));
-        return response;
+    private Optional<Response> mergeResponses(List<Response> responses, Optional<Response> currentNodeResponse) {
+        Response response = new Response();
+        currentNodeResponse.ifPresent(r -> response.getResponseData().addAll(r.getResponseData()));
+        response.getResponseData().addAll(
+                responses.stream()
+                        .flatMap(r -> r.getResponseData().stream())
+                        .collect(Collectors.toList()));
+        return Optional.of(response);
     }
 
     private List<Response> trySendRequestToPeersAndAwaitResponse(Request request) throws IOException {
@@ -56,7 +66,7 @@ public class NodeRequestHandler {
             try {
                 trySendToPeer(request, responses, peer);
             } catch (Exception e) {
-                System.out.println("Peer: " + peer + " is down.");
+                LOGGER.info("Peer: " + peer + " is down.");
             }
         }
         return responses;

@@ -47,7 +47,6 @@ public class NodeConsumerServer implements Runnable, AutoCloseable {
 
     public void close() {
         try {
-            executorService.shutdownNow();
             serverSocket.close();
         } catch (IOException e) {
         }

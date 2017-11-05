@@ -1,3 +1,14 @@
+md\utm\pad\labs\node\context\NodeContext.class
 md\utm\pad\labs\node\tcp\handler\NodeRequestHandler.class
+md\utm\pad\labs\handler\UdpClientHandler.class
+md\utm\pad\labs\node\tcp\NodeConsumerHandler.class
+md\utm\pad\labs\repository\InMemoryStudentRepository.class
+md\utm\pad\labs\node\NodeRunner.class
+md\utm\pad\labs\node\NodeServer.class
+md\utm\pad\labs\node\config\NodeConfiguration.class
+md\utm\pad\labs\repository\StudentRepository.class
+md\utm\pad\labs\handler\DefaultClientHandler.class
 md\utm\pad\labs\node\tcp\NodeConsumerServer$1.class
+md\utm\pad\labs\node\tcp\NodeConsumerServer.class
+md\utm\pad\labs\node\context\InMemoryNodeContext.class
 md\utm\pad\labs\node\tcp\NodeConsumerServer$NodeConsumerServerBuilder.class

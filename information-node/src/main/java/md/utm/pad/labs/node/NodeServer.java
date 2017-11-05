@@ -6,6 +6,7 @@ import md.utm.pad.labs.node.tcp.NodeConsumerServer;
 import md.utm.pad.labs.request.DiscoverRequest;
 import md.utm.pad.labs.response.DiscoverResponse;
 import md.utm.pad.labs.service.JsonService;
+import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -18,6 +19,7 @@ import java.util.concurrent.Executors;
 
 public class NodeServer implements Runnable {
     private static final int MAX_THREADS = 10;
+    private static final Logger LOGGER = Logger.getLogger(NodeServer.class);
 
     private final MulticastSocket socket;
     private final ExecutorService executorService = Executors.newFixedThreadPool(MAX_THREADS);
@@ -65,10 +67,19 @@ public class NodeServer implements Runnable {
     }
 
     private void tryStop() throws IOException {
-        nodeConsumerServer.close();
         socket.leaveGroup(InetAddress.getByName(configuration.getNodeDiscoverGroupAddress()));
         executorService.shutdownNow();
-        socket.close();
+        closeResource(socket);
+        closeResource(nodeConsumerServer);
+        closeResource(peerServer);
+    }
+
+    private void closeResource(AutoCloseable socket) {
+        try {
+            socket.close();
+        } catch (Exception e) {
+            LOGGER.error("Can't close the socket.", e);
+        }
     }
 
     @Override
@@ -77,9 +88,11 @@ public class NodeServer implements Runnable {
             serveClients();
         } catch (IOException e) {
             if (e instanceof SocketException)
-                System.out.println("Node socket closed");
+                LOGGER.info("Node socket closed");
+            else if (e instanceof SocketException)
+                LOGGER.error("Socket closed.");
             else
-                e.printStackTrace();
+                LOGGER.error("Error while serving clients.", e);
         }
     }
 
