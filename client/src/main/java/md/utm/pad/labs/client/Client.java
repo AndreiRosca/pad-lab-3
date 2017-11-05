@@ -56,10 +56,10 @@ public class Client implements AutoCloseable {
     }
 
     public void getAll() {
-        Request request = new Request("from Student");
+        Request request = new Request("from Student where numberOfReportsToPresent > 1 order by age, name");
         channel.write(jsonService.toJson(request));
         Response response = jsonService.fromJson(readJsonRequest(), Response.class);
-        System.out.println(response);
+        LOGGER.info(response);
     }
 
     private String readJsonRequest() {

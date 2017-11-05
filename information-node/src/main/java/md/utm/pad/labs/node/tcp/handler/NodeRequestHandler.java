@@ -35,21 +35,30 @@ public class NodeRequestHandler {
         List<Response> responses = sendRequestToPeersAndAwaitResponse(request);
         DslParser parser = new DslParser();
         List<Student> resultData = parser.execute(request.getRequest(), prepareDataset());
-        return mergeResponses(responses, new Response(request.getRequest(), resultData));
+        Response response = mergeResponses(responses, new Response(request.getRequest(), resultData));
+        return Optional.of(postProcessResponse(request, response));
+    }
+
+    private Response postProcessResponse(Request request, Response response) {
+        Map<String, List<Student>> dataSet = Collections.singletonMap(Student.class.getSimpleName(), response.getResponseData());
+        DslParser parser = new DslParser();
+        List<Student> resultData = parser.execute(request.getRequest(), dataSet);
+        response.setResponseData(resultData);
+        return response;
     }
 
     private Map<String, List<Student>> prepareDataset() {
         return Collections.singletonMap(Student.class.getSimpleName(), nodeContext.getAll());
     }
 
-    private Optional<Response> mergeResponses(List<Response> responses, Response currentNodeResponse) {
+    private Response mergeResponses(List<Response> responses, Response currentNodeResponse) {
         Response response = new Response();
         response.getResponseData().addAll(currentNodeResponse.getResponseData());
         response.getResponseData().addAll(
                 responses.stream()
                         .flatMap(r -> r.getResponseData().stream())
                         .collect(Collectors.toList()));
-        return Optional.of(response);
+        return response;
     }
 
     private List<Response> trySendRequestToPeersAndAwaitResponse(Request request) throws IOException {
