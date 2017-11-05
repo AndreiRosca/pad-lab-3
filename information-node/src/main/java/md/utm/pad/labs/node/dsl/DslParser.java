@@ -7,7 +7,7 @@ import java.lang.reflect.Field;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -23,8 +23,10 @@ public class DslParser {
     private static final Pattern DSL_PATTERN =
             Pattern.compile("from\\s*(?<entityName>\\w+)\\s*(where\\s*(?<where>\\w+\\s*(<|>|=|!=|>=|<=)\\s*(\\w+|'.+')))?\\s*(group by (?<groupBy>\\w+(,\\s*\\w+)*))?\\s*(order by (?<orderBy>\\w+(,\\s*\\w+)*))?");
 
-    private static final Pattern WHERE_PATTERN = Pattern.compile("(?<firstOperand>\\w+)+\\s*(?<operation><|>|=|!=|>=|<=)\\s*(?<secondOperand>\\w+|'.+')");
+    private static final Pattern WHERE_PATTERN =
+            Pattern.compile("(?<firstOperand>\\w+)+\\s*(?<operation><|>|=|!=|>=|<=)\\s*(?<secondOperand>\\w+|'.+')");
     private static final String ORDER_BY_PATTERN = ", ";
+    private static final String GROUP_BY_PATTERN = ", ";
 
     public <T> List<T> execute(String dslExpression, Map<String, List<T>> dataSet) throws InvalidDslException {
         Matcher dslMatcher = DSL_PATTERN.matcher(dslExpression);
@@ -35,14 +37,34 @@ public class DslParser {
             String orderByFields = dslMatcher.group("orderBy");
             if (dataSet.containsKey(entityName)) {
                 List<T> result = dataSet.get(entityName);
-                if (shouldSort(orderByFields))
-                    result.sort(makeComparatorFor(getEntityClass(result), orderByFields.split(ORDER_BY_PATTERN)));
                 if (shouldFilter(whereClause))
                     result = filterResult(result, getEntityClass(result), whereClause);
+                if (shouldGoup(groupByFields))
+                    result = groupResult(result, getEntityClass(result), groupByFields);
+                if (shouldSort(orderByFields))
+                    result.sort(makeComparatorFor(getEntityClass(result), orderByFields.split(ORDER_BY_PATTERN)));
                 return result;
             }
         }
         throw new InvalidDslException();
+    }
+
+    private <T> List<T> groupResult(List<T> result, Class<?> entityClass, String groupByFields) {
+        Map<Object, List<T>> groupedResult = result.stream()
+                .collect(Collectors.groupingBy(makeGroupingFunction(entityClass, groupByFields.split(GROUP_BY_PATTERN))));
+        return groupedResult.values()
+                .stream()
+                .map(group -> group.iterator().next())
+                .collect(Collectors.toList());
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T, R> Function<T, R> makeGroupingFunction(Class<?> entityClass, String[] fields) {
+        return (data) -> (R) ReflectionUtil.getFieldValue(data, ReflectionUtil.getField(entityClass, fields[0]));
+    }
+
+    private boolean shouldGoup(String groupByClause) {
+        return groupByClause != null;
     }
 
     private <T> List<T> filterResult(List<T> result, Class<?> entityClass, String whereClause) {
@@ -78,20 +100,17 @@ public class DslParser {
     @SuppressWarnings("unchecked")
     private <T> Comparator<? super T> makeComparatorFor(Class<?> entityClass, String[] orderByFields) {
         BeanComparator comparator = new BeanComparator(entityClass, toGetterName(orderByFields[0]));
-        return new Comparator<T>() {
-            public int compare(T first, T second) {
-                BeanComparator currentComparator = comparator;
-                int result = comparator.compare(first, second);
-                if (result != 0)
-                    return result;
-                for (int i = 1; i < orderByFields.length; ++i) {
-                    currentComparator = new BeanComparator(entityClass, toGetterName(orderByFields[i]));
-                    result = currentComparator.compare(first, second);
-                    if (result != 0)
-                        break;
-                }
+        return (first, second) -> {
+            int result = comparator.compare(first, second);
+            if (result != 0)
                 return result;
+            for (int i = 1; i < orderByFields.length; ++i) {
+                BeanComparator currentComparator = new BeanComparator(entityClass, toGetterName(orderByFields[i]));
+                result = currentComparator.compare(first, second);
+                if (result != 0)
+                    break;
             }
+            return result;
         };
     }
 

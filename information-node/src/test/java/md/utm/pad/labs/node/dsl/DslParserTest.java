@@ -27,6 +27,7 @@ public class DslParserTest {
         students.add(new Student("Mike Smith", 3, 20));
         students.add(new Student("John Doe", 2, 21));
         students.add(new Student("Denis Ritchie", 1, 20));
+        students.add(new Student("Vasile P", 3, 21));
         return students;
     }
 
@@ -130,6 +131,40 @@ public class DslParserTest {
     public void testGetAllFilteredEQProperty_WithIncompatibleTypes() {
         List<Student> students = parser.execute("from Student where name = age", dataSet);
         assertEquals(Collections.emptyList(), students);
+    }
+
+    @Test
+    public void testGetAllFilteredAndSorted() {
+        List<Student> students = parser.execute("from Student where numberOfReportsToPresent = 3 order by name", dataSet);
+        assertEquals(dataSet.get("Student").stream()
+                .filter(s -> s.getNumberOfReportsToPresent() == 3)
+                .sorted(Comparator.comparing(Student::getName))
+                .collect(Collectors.toList()), students);
+    }
+
+    @Test
+    public void testGetAllGroupBy() {
+        List<Student> students = parser.execute("from Student group by age", dataSet);
+        assertEquals(dataSet.get("Student").stream()
+                .collect(Collectors.groupingBy(Student::getAge))
+                .values()
+                .stream()
+                .map(group -> group.iterator().next())
+                .collect(Collectors.toList()), students);
+    }
+
+    @Test
+    public void testGetAllFilteredAndGroupedBy() {
+        dataSet.get("Student").add(new Student("Vasya", 1, 31));
+        List<Student> students = parser.execute("from Student where age > 20 group by age order by name", dataSet);
+        assertEquals(dataSet.get("Student").stream()
+                .filter(s -> s.getAge() > 20)
+                .collect(Collectors.groupingBy(Student::getAge))
+                .values()
+                .stream()
+                .map(group -> group.iterator().next())
+                .sorted(Comparator.comparing(Student::getName))
+                .collect(Collectors.toList()), students);
     }
 
     @Ignore
