@@ -10,8 +10,9 @@
     <packaging>pom</packaging>
     <modules>
         <module>information-node</module>
-        <module>client</module>
+        <module>mediator</module>
         <module>util</module>
+        <module>mediator-client</module>
     </modules>
 
     <properties>

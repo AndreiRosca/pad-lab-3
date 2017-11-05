@@ -1,6 +1,7 @@
 package md.utm.pad.labs.node.tcp;
 
 import md.utm.pad.labs.channel.SocketClientChannel;
+import md.utm.pad.labs.channel.util.ChannelUtil;
 import md.utm.pad.labs.node.tcp.handler.NodeRequestHandler;
 import md.utm.pad.labs.request.Request;
 import md.utm.pad.labs.response.Response;
@@ -22,9 +23,11 @@ public class NodeConsumerHandler implements Runnable {
 
     public void run() {
         while (true) {
-            String jsonRequest = readJsonRequest();
-            if (!jsonRequest.isEmpty()) {
-                Request request = jsonService.fromJson(jsonRequest, Request.class);
+            Optional<String> jsonRequest = ChannelUtil.readJsonRequest(clientChannel);
+            if (!jsonRequest.isPresent())
+                break;
+            if (!jsonRequest.get().isEmpty()) {
+                Request request = jsonService.fromJson(jsonRequest.get(), Request.class);
                 Optional<Response> response = requestHandler.handleRequest(request);
                 response.ifPresent(this::sendResponse);
             }
@@ -33,14 +36,5 @@ public class NodeConsumerHandler implements Runnable {
 
     private void sendResponse(Response response) {
         clientChannel.write(jsonService.toJson(response));
-    }
-
-    private String readJsonRequest() {
-        StringBuilder requestBuilder = new StringBuilder();
-        String line;
-        while ((line = clientChannel.readLine()) != null && line.trim().length() > 0) {
-            requestBuilder.append(line);
-        }
-        return requestBuilder.toString();
     }
 }

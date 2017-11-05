@@ -3,10 +3,10 @@ package md.utm.pad.labs.config;
 import java.io.IOException;
 import java.util.Properties;
 
-public class ClientConfiguration {
+public class NodeClientConfiguration {
     private final Properties properties;
 
-    public ClientConfiguration(String propertiesFile) {
+    public NodeClientConfiguration(String propertiesFile) {
         try {
             properties = new Properties();
             properties.load(getClass().getResourceAsStream(propertiesFile));

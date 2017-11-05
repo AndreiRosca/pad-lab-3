@@ -1,6 +1,6 @@
 package md.utm.pad.labs.interogator;
 
-import md.utm.pad.labs.config.ClientConfiguration;
+import md.utm.pad.labs.config.NodeClientConfiguration;
 import md.utm.pad.labs.request.DiscoverRequest;
 import md.utm.pad.labs.request.DiscoverRequestType;
 import md.utm.pad.labs.response.DiscoverResponse;
@@ -18,13 +18,13 @@ import java.util.concurrent.TimeUnit;
 public class NodeInterogator implements Runnable {
     private static final Logger LOGGER = Logger.getLogger(NodeInterogator.class);
 
-    private final ClientConfiguration configuration;
+    private final NodeClientConfiguration configuration;
     private final List<DiscoverResponse> nodes = new ArrayList<>();
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
     private final JsonService jsonService;
     private DatagramSocket socket;
 
-    public NodeInterogator(ClientConfiguration configuration, JsonService jsonService) {
+    public NodeInterogator(NodeClientConfiguration configuration, JsonService jsonService) {
         this.configuration = configuration;
         this.jsonService = jsonService;
     }

@@ -2,6 +2,7 @@ package md.utm.pad.labs.node.tcp.handler;
 
 import md.utm.pad.labs.channel.ClientChannel;
 import md.utm.pad.labs.channel.SocketClientChannel;
+import md.utm.pad.labs.channel.util.ChannelUtil;
 import md.utm.pad.labs.domain.Student;
 import md.utm.pad.labs.node.context.NodeContext;
 import md.utm.pad.labs.node.dsl.DslParser;
@@ -34,15 +35,15 @@ public class NodeRequestHandler {
         LOGGER.info("Got request: " + request);
         List<Response> responses = sendRequestToPeersAndAwaitResponse(request);
         DslParser parser = new DslParser();
-        List<Student> resultData = parser.execute(request.getRequest(), prepareDataset());
-        Response response = mergeResponses(responses, new Response(request.getRequest(), resultData));
+        List<Student> resultData = parser.execute(request.getDslRequest(), prepareDataset());
+        Response response = mergeResponses(responses, new Response(resultData));
         return Optional.of(postProcessResponse(request, response));
     }
 
     private Response postProcessResponse(Request request, Response response) {
         Map<String, List<Student>> dataSet = Collections.singletonMap(Student.class.getSimpleName(), response.getResponseData());
         DslParser parser = new DslParser();
-        List<Student> resultData = parser.execute(request.getRequest(), dataSet);
+        List<Student> resultData = parser.execute(request.getDslRequest(), dataSet);
         response.setResponseData(resultData);
         return response;
     }
@@ -77,18 +78,9 @@ public class NodeRequestHandler {
     private void trySendToPeer(Request request, List<Response> responses, URI peer) throws IOException {
         ClientChannel channel = new SocketClientChannel(new Socket(peer.getHost(), peer.getPort()));
         channel.write(jsonService.toJson(request));
-        Response response = jsonService.fromJson(readJsonRequest(channel), Response.class);
+        Response response = jsonService.fromJson(ChannelUtil.readJsonRequest(channel).get(), Response.class);
         responses.add(response);
         channel.close();
-    }
-
-    private String readJsonRequest(ClientChannel channel) {
-        StringBuilder requestBuilder = new StringBuilder();
-        String line;
-        while ((line = channel.readLine()) != null && line.trim().length() > 0) {
-            requestBuilder.append(line);
-        }
-        return requestBuilder.toString();
     }
 
     private List<Response> sendRequestToPeersAndAwaitResponse(Request request) {

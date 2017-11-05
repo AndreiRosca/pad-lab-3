@@ -4,27 +4,27 @@ package md.utm.pad.labs.request;
  * Created by anrosca on Nov, 2017
  */
 public class Request {
-    private String request;
+    private String dslRequest;
 
     public Request() {
     }
 
-    public Request(String request) {
-        this.request = request;
+    public Request(String dslRequest) {
+        this.dslRequest = dslRequest;
     }
 
-    public String getRequest() {
-        return request;
+    public String getDslRequest() {
+        return dslRequest;
     }
 
-    public void setRequest(String request) {
-        this.request = request;
+    public void setDslRequest(String dslRequest) {
+        this.dslRequest = dslRequest;
     }
 
     @Override
     public String toString() {
         return "Request{" +
-                "request='" + request + '\'' +
+                "dslRequest='" + dslRequest + '\'' +
                 '}';
     }
 }

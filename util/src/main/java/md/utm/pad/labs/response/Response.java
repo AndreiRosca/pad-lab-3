@@ -9,27 +9,13 @@ import java.util.List;
  * Created by anrosca on Nov, 2017
  */
 public class Response {
-    private String type;
     private List<Student> responseData = new ArrayList<>();
 
     public Response() {
     }
 
-    public Response(String type) {
-        this.type = type;
-    }
-
-    public Response(String responseType, List<Student> students) {
-        this(responseType);
+    public Response(List<Student> students) {
         this.responseData = students;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
     }
 
     public List<Student> getResponseData() {
@@ -43,8 +29,7 @@ public class Response {
     @Override
     public String toString() {
         return "Response{" +
-                "type='" + type + '\'' +
-                ", responseData=" + responseData +
+                "responseData=" + responseData +
                 '}';
     }
 }
