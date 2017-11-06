@@ -64,8 +64,16 @@ public class NodeInterogator implements Runnable {
     private void tryAwaitNodeResponses() throws InterruptedException {
         executorService.submit(this);
         TimeUnit.MILLISECONDS.sleep(configuration.getNodeResponseTimeout());
+        closeSocket();
         executorService.shutdownNow();
-        socket.close();
+    }
+
+    private void closeSocket() {
+        try {
+            socket.close();
+        } catch (Exception e) {
+            LOGGER.info("Closing the node interogator socket.");
+        }
     }
 
     public void run() {

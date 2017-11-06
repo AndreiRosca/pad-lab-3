@@ -63,20 +63,21 @@ public class NodeServer implements Runnable {
         try {
             tryStop();
         } catch (Exception e) {
+            LOGGER.error("Can't stop", e);
         }
     }
 
     private void tryStop() throws IOException {
         socket.leaveGroup(InetAddress.getByName(configuration.getNodeDiscoverGroupAddress()));
-        executorService.shutdownNow();
         closeResource(socket);
         closeResource(nodeConsumerServer);
         closeResource(peerServer);
+        executorService.shutdownNow();
     }
 
-    private void closeResource(AutoCloseable socket) {
+    private void closeResource(AutoCloseable resource) {
         try {
-            socket.close();
+            resource.close();
         } catch (Exception e) {
             LOGGER.error("Can't close the socket.", e);
         }
@@ -86,11 +87,9 @@ public class NodeServer implements Runnable {
     public void run() {
         try {
             serveClients();
-        } catch (IOException e) {
+        } catch (Exception e) {
             if (e instanceof SocketException)
                 LOGGER.info("Node socket closed");
-            else if (e instanceof SocketException)
-                LOGGER.error("Socket closed.");
             else
                 LOGGER.error("Error while serving clients.", e);
         }
@@ -109,8 +108,8 @@ public class NodeServer implements Runnable {
     private void sendResponse(InetAddress address, int port, DiscoverResponse response) {
         try {
             trySendResponse(address, port, response);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            LOGGER.error("Can't send the discover response", e);
         }
     }
 

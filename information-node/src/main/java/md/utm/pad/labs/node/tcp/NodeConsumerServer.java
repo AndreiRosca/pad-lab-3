@@ -4,13 +4,16 @@ import md.utm.pad.labs.channel.SocketClientChannel;
 import md.utm.pad.labs.node.context.NodeContext;
 import md.utm.pad.labs.node.tcp.handler.NodeRequestHandler;
 import md.utm.pad.labs.service.JsonService;
+import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.net.ServerSocket;
-import java.net.Socket;
+import java.net.SocketException;
 import java.util.concurrent.ExecutorService;
 
 public class NodeConsumerServer implements Runnable, AutoCloseable {
+    private static final Logger LOGGER = Logger.getLogger(NodeConsumerServer.class);
+
     private ExecutorService executorService;
     private JsonService jsonService;
     private NodeContext nodeContext;
@@ -25,22 +28,26 @@ public class NodeConsumerServer implements Runnable, AutoCloseable {
             setUpServer();
             serveClients();
         } catch (Exception e) {
-            e.printStackTrace();
+            if (e instanceof SocketException)
+                LOGGER.info("Closing the socket");
+            else
+                LOGGER.error("Error while serving clients.", e);
         }
     }
 
     private void setUpServer() {
         try {
             serverSocket = new ServerSocket(port);
-        } catch (IOException e) {
+        } catch (Exception e) {
+            LOGGER.error("Can't set up the server", e);
             throw new RuntimeException(e);
         }
     }
 
     private void serveClients() throws IOException {
         while (true) {
-            Socket socket = serverSocket.accept();
-            executorService.submit(new NodeConsumerHandler(new SocketClientChannel(socket), jsonService,
+            SocketClientChannel channel = new SocketClientChannel(serverSocket.accept());
+            executorService.submit(new NodeConsumerHandler(channel, jsonService,
                     new NodeRequestHandler(nodeContext, jsonService)));
         }
     }
@@ -48,7 +55,8 @@ public class NodeConsumerServer implements Runnable, AutoCloseable {
     public void close() {
         try {
             serverSocket.close();
-        } catch (IOException e) {
+        } catch (Exception e) {
+            LOGGER.info("Closing the server socket.");
         }
     }
 

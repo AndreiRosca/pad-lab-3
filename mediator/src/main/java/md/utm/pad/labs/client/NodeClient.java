@@ -2,6 +2,7 @@ package md.utm.pad.labs.client;
 
 import md.utm.pad.labs.channel.ClientChannel;
 import md.utm.pad.labs.channel.SocketClientChannel;
+import md.utm.pad.labs.channel.util.ChannelUtil;
 import md.utm.pad.labs.config.NodeClientConfiguration;
 import md.utm.pad.labs.interogator.NodeInterogator;
 import md.utm.pad.labs.request.Request;
@@ -32,12 +33,11 @@ public class NodeClient implements AutoCloseable {
 
     public void detectMavenNode() {
         interogator.interogateNodes();
-        Optional<DiscoverResponse> maven = interogator.getNodes().stream()
+        Optional<DiscoverResponse> maven = interogator.getNodes()
+                .stream()
                 .sorted()
                 .findFirst();
-        maven.ifPresent(r -> {
-            mavenNode =  new MavenNode(r.getNodeAddress(), r.getNodePort());
-        });
+        maven.ifPresent(r -> mavenNode =  new MavenNode(r.getNodeAddress(), r.getNodePort()));
         LOGGER.info("Maven node: " + mavenNode);
     }
 
@@ -45,7 +45,8 @@ public class NodeClient implements AutoCloseable {
         try {
             Socket socket = new Socket(mavenNode.getAddress(), mavenNode.getPort());
             channel = new SocketClientChannel(socket);
-        } catch (IOException e) {
+        } catch (Exception e) {
+            LOGGER.error("Can't connect to Maven node", e);
             throw new RuntimeException(e);
         }
     }
@@ -58,22 +59,18 @@ public class NodeClient implements AutoCloseable {
     public void getAll() {
         Request request = new Request("from Student where numberOfReportsToPresent > 1 order by age, name");
         channel.write(jsonService.toJson(request));
-        Response response = jsonService.fromJson(readJsonRequest(), Response.class);
+        Response response = jsonService.fromJson(ChannelUtil.readJsonRequest(channel).get(), Response.class);
         LOGGER.info(response);
     }
 
     public Response submit(String dsl) {
-        Request request = new Request(dsl);
-        channel.write(jsonService.toJson(request));
-        return jsonService.fromJson(readJsonRequest(), Response.class);
-    }
-
-    private String readJsonRequest() {
-        StringBuilder requestBuilder = new StringBuilder();
-        String line;
-        while ((line = channel.readLine()) != null && line.trim().length() > 0) {
-            requestBuilder.append(line);
+        try {
+            Request request = new Request(dsl);
+            channel.write(jsonService.toJson(request));
+            return jsonService.fromJson(ChannelUtil.readJsonRequest(channel).get(), Response.class);
+        } catch (Exception e) {
+            LOGGER.error("Can't send data to node", e);
+            throw new RuntimeException(e);
         }
-        return requestBuilder.toString();
     }
 }

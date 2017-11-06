@@ -2,7 +2,6 @@ package md.utm.pad.labs.mediator;
 
 import md.utm.pad.labs.channel.ClientChannel;
 import md.utm.pad.labs.channel.SocketClientChannel;
-import md.utm.pad.labs.channel.util.ChannelUtil;
 import md.utm.pad.labs.client.NodeClient;
 import md.utm.pad.labs.config.MediatorConfiguration;
 import md.utm.pad.labs.config.NodeClientConfiguration;
@@ -12,6 +11,7 @@ import org.apache.log4j.Logger;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -59,8 +59,8 @@ public class Mediator implements Runnable {
     public void close() {
         try {
             nodeClient.close();
-            executorService.shutdownNow();
             closeSocket();
+            executorService.shutdownNow();
         } catch (Exception e) {
             LOGGER.error("Error while closing the nodeClient", e);
         }
@@ -76,14 +76,17 @@ public class Mediator implements Runnable {
 
     @Override
     public void run() {
-        while (true) {
-            try {
+        try {
+            while (true) {
                 Socket socket = serverSocket.accept();
                 ClientChannel channel = new SocketClientChannel(socket);
                 executorService.submit(new ClientHandler(channel, nodeClient, jsonService));
-            } catch (IOException e) {
-                LOGGER.error("Error while serving the client.", e);
             }
+        } catch (Exception e) {
+            if (e instanceof SocketException)
+                LOGGER.info("Mediator socket closed.");
+            else
+                LOGGER.error("Error while serving the client.", e);
         }
     }
 }

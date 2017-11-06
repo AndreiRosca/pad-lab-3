@@ -9,11 +9,11 @@ import java.io.IOException;
 
 public class NodeRunner {
     public static void main(String[] args) throws IOException {
-        if (args.length < 1) {
-            System.out.println("Too few arguments. Usage: NodeRunner /configuration.properties");
-            System.exit(-1);
-        }
-        NodeConfiguration config = new NodeConfiguration(args[0]);
+//        if (args.length < 1) {
+//            System.out.println("Too few arguments. Usage: NodeRunner /configuration.properties");
+//            System.exit(-1);
+//        }
+        NodeConfiguration config = new NodeConfiguration("/configuration.properties");
         NodeServer server = new NodeServer(config, new JacksonJsonService(),
                 new DefaultClientHandler(new InMemoryNodeContext(config)));
         server.start();

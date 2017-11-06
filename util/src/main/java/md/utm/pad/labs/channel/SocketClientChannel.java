@@ -1,5 +1,7 @@
 package md.utm.pad.labs.channel;
 
+import org.apache.log4j.Logger;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -7,6 +9,8 @@ import java.io.PrintWriter;
 import java.net.Socket;
 
 public class SocketClientChannel implements ClientChannel {
+    private static final Logger LOGGER = Logger.getLogger(SocketClientChannel.class);
+
     private final Socket socket;
     private final BufferedReader reader;
     private final PrintWriter writer;
@@ -39,12 +43,16 @@ public class SocketClientChannel implements ClientChannel {
 
     @Override
     public void close() {
+        closeResource(reader);
+        closeResource(writer);
+        closeResource(socket);
+    }
+
+    private void closeResource(AutoCloseable resource) {
         try {
             reader.close();
-            writer.close();
-            socket.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.error("Can't close the AutoCloseable", e);
         }
     }
 }
