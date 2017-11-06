@@ -6,6 +6,7 @@ import md.utm.pad.labs.client.NodeClient;
 import md.utm.pad.labs.config.MediatorConfiguration;
 import md.utm.pad.labs.config.NodeClientConfiguration;
 import md.utm.pad.labs.service.JsonService;
+import md.utm.pad.labs.service.XmlService;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
@@ -22,17 +23,15 @@ public class Mediator implements Runnable {
     private static final Logger LOGGER = Logger.getLogger(Mediator.class);
     private static final int MAX_THREADS = 4;
 
-    private final NodeClientConfiguration configuration;
-    private final JsonService jsonService;
-    private final MediatorConfiguration mediatorConfiguration;
+    private NodeClientConfiguration configuration;
+    private JsonService jsonService;
+    private XmlService xmlService;
+    private MediatorConfiguration mediatorConfiguration;
     private NodeClient nodeClient;
     private ServerSocket serverSocket;
-    private final ExecutorService executorService = Executors.newFixedThreadPool(MAX_THREADS);
+    private ExecutorService executorService = Executors.newFixedThreadPool(MAX_THREADS);
 
-    public Mediator(NodeClientConfiguration configuration, JsonService jsonService, MediatorConfiguration mediatorConfiguration) {
-        this.configuration = configuration;
-        this.jsonService = jsonService;
-        this.mediatorConfiguration = mediatorConfiguration;
+    private Mediator() {
     }
 
     public void init() {
@@ -80,13 +79,61 @@ public class Mediator implements Runnable {
             while (true) {
                 Socket socket = serverSocket.accept();
                 ClientChannel channel = new SocketClientChannel(socket);
-                executorService.submit(new ClientHandler(channel, nodeClient, jsonService));
+                executorService.submit(ClientHandler.newBuilder()
+                        .setChannel(channel)
+                        .setJsonService(jsonService)
+                        .setNodeClient(nodeClient)
+                        .setXmlService(xmlService)
+                        .build());
             }
         } catch (Exception e) {
             if (e instanceof SocketException)
                 LOGGER.info("Mediator socket closed.");
             else
                 LOGGER.error("Error while serving the client.", e);
+        }
+    }
+
+    public static MediatorBuilder newBuilder() {
+        return new MediatorBuilder();
+    }
+
+    public static final class MediatorBuilder {
+        private NodeClientConfiguration configuration;
+        private JsonService jsonService;
+        private XmlService xmlService;
+        private MediatorConfiguration mediatorConfiguration;
+
+        private MediatorBuilder() {
+        }
+
+        public MediatorBuilder setConfiguration(NodeClientConfiguration configuration) {
+            this.configuration = configuration;
+            return this;
+        }
+
+        public MediatorBuilder setJsonService(JsonService jsonService) {
+            this.jsonService = jsonService;
+            return this;
+        }
+
+        public MediatorBuilder setXmlService(XmlService xmlService) {
+            this.xmlService = xmlService;
+            return this;
+        }
+
+        public MediatorBuilder setMediatorConfiguration(MediatorConfiguration mediatorConfiguration) {
+            this.mediatorConfiguration = mediatorConfiguration;
+            return this;
+        }
+
+        public Mediator build() {
+            Mediator mediator = new Mediator();
+            mediator.configuration = this.configuration;
+            mediator.jsonService = this.jsonService;
+            mediator.mediatorConfiguration = this.mediatorConfiguration;
+            mediator.xmlService = this.xmlService;
+            return mediator;
         }
     }
 }

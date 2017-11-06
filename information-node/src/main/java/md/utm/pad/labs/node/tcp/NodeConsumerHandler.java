@@ -23,7 +23,7 @@ public class NodeConsumerHandler implements Runnable {
 
     public void run() {
         while (true) {
-            Optional<String> jsonRequest = ChannelUtil.readJsonRequest(clientChannel);
+            Optional<String> jsonRequest = ChannelUtil.readRequest(clientChannel);
             if (!jsonRequest.isPresent())
                 break;
             if (!jsonRequest.get().isEmpty()) {

@@ -9,7 +9,7 @@ import java.util.Optional;
  */
 public class ChannelUtil {
 
-    public static Optional<String> readJsonRequest(ClientChannel channel) {
+    public static Optional<String> readRequest(ClientChannel channel) {
         StringBuilder requestBuilder = new StringBuilder();
         String line;
         while ((line = channel.readLine()) != null && line.trim().length() > 0) {

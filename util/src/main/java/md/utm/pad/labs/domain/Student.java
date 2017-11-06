@@ -1,8 +1,10 @@
 package md.utm.pad.labs.domain;
 
+import javax.xml.bind.annotation.XmlRootElement;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@XmlRootElement
 public class Student implements Comparable<Student> {
     private Long id;
     private String name;

@@ -2,12 +2,14 @@ package md.utm.pad.labs.response;
 
 import md.utm.pad.labs.domain.Student;
 
+import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by anrosca on Nov, 2017
  */
+@XmlRootElement
 public class Response {
     private List<Student> responseData = new ArrayList<>();
 

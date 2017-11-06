@@ -78,7 +78,7 @@ public class NodeRequestHandler {
     private void trySendToPeer(Request request, List<Response> responses, URI peer) throws IOException {
         ClientChannel channel = new SocketClientChannel(new Socket(peer.getHost(), peer.getPort()));
         channel.write(jsonService.toJson(request));
-        Response response = jsonService.fromJson(ChannelUtil.readJsonRequest(channel).get(), Response.class);
+        Response response = jsonService.fromJson(ChannelUtil.readRequest(channel).get(), Response.class);
         responses.add(response);
         channel.close();
     }

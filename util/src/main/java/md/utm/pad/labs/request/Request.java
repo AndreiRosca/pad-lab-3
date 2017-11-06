@@ -1,8 +1,11 @@
 package md.utm.pad.labs.request;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
 /**
  * Created by anrosca on Nov, 2017
  */
+@XmlRootElement
 public class Request {
     private String dslRequest;
 

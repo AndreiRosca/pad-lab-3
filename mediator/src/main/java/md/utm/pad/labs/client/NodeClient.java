@@ -11,7 +11,6 @@ import md.utm.pad.labs.response.Response;
 import md.utm.pad.labs.service.JsonService;
 import org.apache.log4j.Logger;
 
-import java.io.IOException;
 import java.net.Socket;
 import java.util.Optional;
 
@@ -59,7 +58,7 @@ public class NodeClient implements AutoCloseable {
     public void getAll() {
         Request request = new Request("from Student where numberOfReportsToPresent > 1 order by age, name");
         channel.write(jsonService.toJson(request));
-        Response response = jsonService.fromJson(ChannelUtil.readJsonRequest(channel).get(), Response.class);
+        Response response = jsonService.fromJson(ChannelUtil.readRequest(channel).get(), Response.class);
         LOGGER.info(response);
     }
 
@@ -67,7 +66,7 @@ public class NodeClient implements AutoCloseable {
         try {
             Request request = new Request(dsl);
             channel.write(jsonService.toJson(request));
-            return jsonService.fromJson(ChannelUtil.readJsonRequest(channel).get(), Response.class);
+            return jsonService.fromJson(ChannelUtil.readRequest(channel).get(), Response.class);
         } catch (Exception e) {
             LOGGER.error("Can't send data to node", e);
             throw new RuntimeException(e);
