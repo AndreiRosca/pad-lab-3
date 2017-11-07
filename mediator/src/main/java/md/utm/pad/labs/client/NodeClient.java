@@ -1,6 +1,8 @@
 package md.utm.pad.labs.client;
 
+import javafx.util.Pair;
 import md.utm.pad.labs.channel.ClientChannel;
+import md.utm.pad.labs.channel.ResponseUtil;
 import md.utm.pad.labs.channel.SocketClientChannel;
 import md.utm.pad.labs.channel.util.ChannelUtil;
 import md.utm.pad.labs.config.NodeClientConfiguration;
@@ -9,6 +11,7 @@ import md.utm.pad.labs.request.Request;
 import md.utm.pad.labs.response.DiscoverResponse;
 import md.utm.pad.labs.response.Response;
 import md.utm.pad.labs.service.JsonService;
+import md.utm.pad.labs.service.XmlService;
 import org.apache.log4j.Logger;
 
 import java.net.Socket;
@@ -22,10 +25,12 @@ public class NodeClient implements AutoCloseable {
 
     private final NodeInterogator interogator;
     private final JsonService jsonService;
+    private final XmlService xmlService;
     private MavenNode mavenNode;
     private ClientChannel channel;
 
-    public NodeClient(NodeClientConfiguration configuration, JsonService jsonService) {
+    public NodeClient(NodeClientConfiguration configuration, JsonService jsonService, XmlService xmlService) {
+        this.xmlService = xmlService;
         interogator = new NodeInterogator(configuration, jsonService);
         this.jsonService = jsonService;
     }
@@ -66,7 +71,12 @@ public class NodeClient implements AutoCloseable {
         try {
             Request request = new Request(dsl);
             channel.write(jsonService.toJson(request));
-            return jsonService.fromJson(ChannelUtil.readRequest(channel).get(), Response.class);
+            Pair<String, String> response = ResponseUtil.readResponse(channel);
+            if (ResponseUtil.isResponseJson(response.getKey()))
+                return jsonService.fromJson(response.getValue(), Response.class);
+            else if (ResponseUtil.isResponseXml(response.getKey()))
+                return xmlService.fromXml(response.getValue(), Response.class);
+            throw new RuntimeException("Unexpected media type. Response: " + response);
         } catch (Exception e) {
             LOGGER.error("Can't send data to node", e);
             throw new RuntimeException(e);

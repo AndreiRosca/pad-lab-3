@@ -9,6 +9,7 @@ import md.utm.pad.labs.response.Response;
 import md.utm.pad.labs.service.JsonService;
 import md.utm.pad.labs.service.XmlService;
 import md.utm.pad.labs.validator.XmlValidator;
+import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -21,6 +22,8 @@ import java.util.Optional;
  * Created by anrosca on Nov, 2017
  */
 public class Client implements AutoCloseable {
+    private static final Logger LOGGER = Logger.getLogger(Client.class);
+
     private MediatorConfiguration configuration;
     private JsonService jsonService;
     private XmlService xmlService;
@@ -51,6 +54,8 @@ public class Client implements AutoCloseable {
             if (xmlValidator.validate(xmlResponse)) {
                 Response response = xmlService.fromXml(xmlResponse, Response.class);
                 return response.getResponseData();
+            } else {
+                LOGGER.error("Got an invalid xml response.");
             }
         }
         return Collections.emptyList();

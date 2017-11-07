@@ -13,7 +13,7 @@ public class ChannelUtil {
         StringBuilder requestBuilder = new StringBuilder();
         String line;
         while ((line = channel.readLine()) != null && line.trim().length() > 0) {
-            requestBuilder.append(line);
+            requestBuilder.append(line).append("\n");
         }
         return line == null ? Optional.empty() : Optional.of(requestBuilder.toString());
     }

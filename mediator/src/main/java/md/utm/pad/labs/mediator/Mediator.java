@@ -35,7 +35,7 @@ public class Mediator implements Runnable {
     }
 
     public void init() {
-        nodeClient = new NodeClient(configuration, jsonService);
+        nodeClient = new NodeClient(configuration, jsonService, xmlService);
         nodeClient.detectMavenNode();
         nodeClient.connectToMaven();
         setUpServerSocket();

@@ -4,6 +4,7 @@ import md.utm.pad.labs.handler.DefaultClientHandler;
 import md.utm.pad.labs.node.config.NodeConfiguration;
 import md.utm.pad.labs.node.context.InMemoryNodeContext;
 import md.utm.pad.labs.service.impl.JacksonJsonService;
+import md.utm.pad.labs.service.impl.JaxbXmlService;
 
 import java.io.IOException;
 
@@ -14,8 +15,12 @@ public class NodeRunner {
             System.exit(-1);
         }
         NodeConfiguration config = new NodeConfiguration(args[0]);
-        NodeServer server = new NodeServer(config, new JacksonJsonService(),
-                new DefaultClientHandler(new InMemoryNodeContext(config)));
+        NodeServer server = NodeServer.newBuilder()
+                .setClientHandler(new DefaultClientHandler(new InMemoryNodeContext(config)))
+                .setConfiguration(config)
+                .setJsonService(new JacksonJsonService())
+                .setXmlService(new JaxbXmlService())
+                .build();
         server.start();
         System.out.println("Press any key to stop the node...");
         System.in.read();

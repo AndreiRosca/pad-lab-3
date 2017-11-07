@@ -2,9 +2,11 @@ package md.utm.pad.labs.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import md.utm.pad.labs.request.Request;
 import md.utm.pad.labs.service.JsonService;
+import md.utm.pad.labs.service.RequestSerializer;
 
-public class JacksonJsonService implements JsonService {
+public class JacksonJsonService implements JsonService, RequestSerializer {
     @Override
     public <T> String toJson(T object) {
         try {
@@ -24,5 +26,20 @@ public class JacksonJsonService implements JsonService {
             e.printStackTrace();
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public <T> String serialize(T object, Class<T> targetClass) {
+        return toJson(object);
+    }
+
+    @Override
+    public <T> T deserialize(String data, Class<T> resultingClass) {
+        return fromJson(data, resultingClass);
+    }
+
+    @Override
+    public String getMediaType() {
+        return "application/json";
     }
 }

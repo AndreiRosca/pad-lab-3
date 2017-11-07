@@ -1,12 +1,10 @@
 package md.utm.pad.labs.validator;
 
 import org.apache.log4j.Logger;
+import org.xml.sax.SAXException;
 
 import javax.xml.XMLConstants;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.bind.ValidationEvent;
-import javax.xml.bind.ValidationEventHandler;
+import javax.xml.bind.*;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import java.io.File;
@@ -29,18 +27,22 @@ public class XmlValidator implements ValidationEventHandler {
 
     public boolean validate(String xml) {
         try {
-            JAXBContext context = JAXBContext.newInstance(targetClass);
-            SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-            Schema schema = factory.newSchema(getSchemaFile());
-            Unmarshaller unmarshaller = context.createUnmarshaller();
-            unmarshaller.setSchema(schema);
-            unmarshaller.setEventHandler(this);
-            unmarshaller.unmarshal(new StringReader(xml));
-            return isValid;
+            return tryValidate(xml);
          } catch (Exception e) {
             LOGGER.error("Error while validating the xml file.", e);
+            return false;
         }
-        return false;
+    }
+
+    private boolean tryValidate(String xml) throws JAXBException, SAXException {
+        JAXBContext context = JAXBContext.newInstance(targetClass);
+        SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+        Schema schema = factory.newSchema(getSchemaFile());
+        Unmarshaller unmarshaller = context.createUnmarshaller();
+        unmarshaller.setSchema(schema);
+        unmarshaller.setEventHandler(this);
+        unmarshaller.unmarshal(new StringReader(xml));
+        return isValid;
     }
 
     private File getSchemaFile() {
@@ -60,7 +62,7 @@ public class XmlValidator implements ValidationEventHandler {
         LOGGER.info("OBJECT:  " + event.getLocator().getObject());
         LOGGER.info("NODE:  " + event.getLocator().getNode());
         LOGGER.info("URL:  " + event.getLocator().getURL());
-        return event.getSeverity() != ValidationEvent.ERROR &&
-                event.getSeverity() != ValidationEvent.FATAL_ERROR;
+        isValid = (event.getSeverity() != ValidationEvent.ERROR && event.getSeverity() != ValidationEvent.FATAL_ERROR);
+        return isValid;
     }
 }

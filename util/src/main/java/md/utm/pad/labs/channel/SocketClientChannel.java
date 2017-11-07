@@ -48,6 +48,12 @@ public class SocketClientChannel implements ClientChannel {
         closeResource(socket);
     }
 
+    @Override
+    public void writeNoBreak(String data) {
+        writer.println(data);
+        writer.flush();
+    }
+
     private void closeResource(AutoCloseable resource) {
         try {
             reader.close();

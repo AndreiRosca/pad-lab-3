@@ -1,6 +1,8 @@
 package md.utm.pad.labs.node.tcp.handler;
 
+import javafx.util.Pair;
 import md.utm.pad.labs.channel.ClientChannel;
+import md.utm.pad.labs.channel.ResponseUtil;
 import md.utm.pad.labs.channel.SocketClientChannel;
 import md.utm.pad.labs.channel.util.ChannelUtil;
 import md.utm.pad.labs.domain.Student;
@@ -9,6 +11,7 @@ import md.utm.pad.labs.node.dsl.DslParser;
 import md.utm.pad.labs.request.Request;
 import md.utm.pad.labs.response.Response;
 import md.utm.pad.labs.service.JsonService;
+import md.utm.pad.labs.service.XmlService;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
@@ -25,10 +28,12 @@ public class NodeRequestHandler {
 
     private final NodeContext nodeContext;
     private final JsonService jsonService;
+    private final XmlService xmlService;
 
-    public NodeRequestHandler(NodeContext nodeContext, JsonService jsonService) {
+    public NodeRequestHandler(NodeContext nodeContext, JsonService jsonService, XmlService xmlService) {
         this.nodeContext = nodeContext;
         this.jsonService = jsonService;
+        this.xmlService = xmlService;
     }
 
     public Optional<Response> handleRequest(Request request) {
@@ -78,7 +83,12 @@ public class NodeRequestHandler {
     private void trySendToPeer(Request request, List<Response> responses, URI peer) throws IOException {
         ClientChannel channel = new SocketClientChannel(new Socket(peer.getHost(), peer.getPort()));
         channel.write(jsonService.toJson(request));
-        Response response = jsonService.fromJson(ChannelUtil.readRequest(channel).get(), Response.class);
+        Pair<String, String> responseData = ResponseUtil.readResponse(channel);
+        Response response = null;
+        if (ResponseUtil.isResponseJson(responseData.getKey()))
+            response = jsonService.fromJson(responseData.getValue(), Response.class);
+        else if (ResponseUtil.isResponseXml(responseData.getKey()))
+            response =  xmlService.fromXml(responseData.getValue(), Response.class);
         responses.add(response);
         channel.close();
     }

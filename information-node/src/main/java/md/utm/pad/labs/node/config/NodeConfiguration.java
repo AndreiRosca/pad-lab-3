@@ -69,4 +69,8 @@ public class NodeConfiguration {
         String port = properties.getProperty("peerPort");
         return Integer.valueOf(port);
     }
+
+    public String getClientResponseMediaType() {
+        return properties.getProperty("clientResponseMediaType");
+    }
 }

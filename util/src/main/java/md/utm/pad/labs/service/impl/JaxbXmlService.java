@@ -1,5 +1,6 @@
 package md.utm.pad.labs.service.impl;
 
+import md.utm.pad.labs.service.RequestSerializer;
 import md.utm.pad.labs.service.XmlService;
 import org.apache.log4j.Logger;
 
@@ -13,7 +14,7 @@ import java.io.StringWriter;
 /**
  * Created by anrosca on Nov, 2017
  */
-public class JaxbXmlService implements XmlService {
+public class JaxbXmlService implements XmlService, RequestSerializer {
     private static final Logger LOGGER = Logger.getLogger(JaxbXmlService.class);
 
     @Override
@@ -49,5 +50,20 @@ public class JaxbXmlService implements XmlService {
         JAXBContext context = JAXBContext.newInstance(resultingClass);
         Unmarshaller unmarshaller = context.createUnmarshaller();
         return (T) unmarshaller.unmarshal(new StringReader(xml));
+    }
+
+    @Override
+    public <T> String serialize(T object, Class<T> targetClass) {
+        return toXml(object, targetClass);
+    }
+
+    @Override
+    public <T> T deserialize(String data, Class<T> resultingClass) {
+        return deserialize(data, resultingClass);
+    }
+
+    @Override
+    public String getMediaType() {
+        return "application/xml";
     }
 }

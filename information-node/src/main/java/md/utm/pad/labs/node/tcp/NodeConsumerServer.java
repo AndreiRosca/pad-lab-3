@@ -4,6 +4,10 @@ import md.utm.pad.labs.channel.SocketClientChannel;
 import md.utm.pad.labs.node.context.NodeContext;
 import md.utm.pad.labs.node.tcp.handler.NodeRequestHandler;
 import md.utm.pad.labs.service.JsonService;
+import md.utm.pad.labs.service.RequestSerializer;
+import md.utm.pad.labs.service.XmlService;
+import md.utm.pad.labs.service.impl.JacksonJsonService;
+import md.utm.pad.labs.service.impl.JaxbXmlService;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
@@ -15,7 +19,7 @@ public class NodeConsumerServer implements Runnable, AutoCloseable {
     private static final Logger LOGGER = Logger.getLogger(NodeConsumerServer.class);
 
     private ExecutorService executorService;
-    private JsonService jsonService;
+    private RequestSerializer serializer;
     private NodeContext nodeContext;
     private ServerSocket serverSocket;
     private int port;
@@ -47,8 +51,11 @@ public class NodeConsumerServer implements Runnable, AutoCloseable {
     private void serveClients() throws IOException {
         while (true) {
             SocketClientChannel channel = new SocketClientChannel(serverSocket.accept());
-            executorService.submit(new NodeConsumerHandler(channel, jsonService,
-                    new NodeRequestHandler(nodeContext, jsonService)));
+            executorService.submit(NodeConsumerHandler.newBuilder()
+                    .setClientChannel(channel)
+                    .setSerializer(serializer)
+                    .setRequestHandler(new NodeRequestHandler(nodeContext, new JacksonJsonService(), new JaxbXmlService()))
+                    .build());
         }
     }
 
@@ -65,40 +72,32 @@ public class NodeConsumerServer implements Runnable, AutoCloseable {
     }
 
     public static final class NodeConsumerServerBuilder {
-        private ExecutorService executorService;
-        private JsonService jsonService;
-        private NodeContext nodeContext;
-        private int port;
+        private NodeConsumerServer nodeConsumerServer = new NodeConsumerServer();
 
         private NodeConsumerServerBuilder() {
         }
 
         public NodeConsumerServerBuilder setExecutorService(ExecutorService executorService) {
-            this.executorService = executorService;
+            nodeConsumerServer.executorService = executorService;
             return this;
         }
 
-        public NodeConsumerServerBuilder setJsonService(JsonService jsonService) {
-            this.jsonService = jsonService;
+        public NodeConsumerServerBuilder setSerializer(RequestSerializer serializer) {
+            nodeConsumerServer.serializer = serializer;
             return this;
         }
 
         public NodeConsumerServerBuilder setNodeContext(NodeContext nodeContext) {
-            this.nodeContext = nodeContext;
+            nodeConsumerServer.nodeContext = nodeContext;
             return this;
         }
 
         public NodeConsumerServerBuilder setPort(int port) {
-            this.port = port;
+            nodeConsumerServer.port = port;
             return this;
         }
 
         public NodeConsumerServer build() {
-            NodeConsumerServer nodeConsumerServer = new NodeConsumerServer();
-            nodeConsumerServer.jsonService = this.jsonService;
-            nodeConsumerServer.nodeContext = this.nodeContext;
-            nodeConsumerServer.executorService = this.executorService;
-            nodeConsumerServer.port = this.port;
             return nodeConsumerServer;
         }
     }
