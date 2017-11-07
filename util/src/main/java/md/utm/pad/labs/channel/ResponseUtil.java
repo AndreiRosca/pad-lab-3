@@ -7,6 +7,7 @@ import md.utm.pad.labs.service.XmlService;
 import md.utm.pad.labs.service.impl.JacksonJsonService;
 import md.utm.pad.labs.service.impl.JaxbXmlService;
 
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -19,10 +20,14 @@ public class ResponseUtil {
     private static final XmlService xmlService = new JaxbXmlService();
 
     public static Pair<String, String> readResponse(ClientChannel channel) {
-        String response = ChannelUtil.readRequest(channel).get();
-        String header = response.substring(0, response.indexOf("\n"));
-        response = response.substring(response.indexOf("\n"), response.length());
-        return new Pair<>(header, response);
+        Optional<String> data = ChannelUtil.readRequest(channel);
+        if (data.isPresent()) {
+            String response = data.get();
+            String header = response.substring(0, response.indexOf("\n"));
+            response = response.substring(response.indexOf("\n") + 1, response.length());
+            return new Pair<>(header, response);
+        }
+        return new Pair<>("", "");
     }
 
     public static boolean isResponseXml(String response) {

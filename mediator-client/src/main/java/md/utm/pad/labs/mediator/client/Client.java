@@ -1,6 +1,8 @@
 package md.utm.pad.labs.mediator.client;
 
+import javafx.util.Pair;
 import md.utm.pad.labs.channel.ClientChannel;
+import md.utm.pad.labs.channel.ResponseUtil;
 import md.utm.pad.labs.channel.SocketClientChannel;
 import md.utm.pad.labs.channel.util.ChannelUtil;
 import md.utm.pad.labs.config.MediatorConfiguration;
@@ -46,10 +48,16 @@ public class Client implements AutoCloseable {
     }
 
     public List<Student> send(String dsl) {
-        clientChannel.write(dsl);
-        Optional<String> jsonResponse = ChannelUtil.readRequest(clientChannel);
-        if (jsonResponse.isPresent()) {
-            String xmlResponse = jsonResponse.get();
+        //sendDslAcceptXml(dsl);
+        sendDslAcceptJson(dsl);
+        Pair<String, String> responseData = ResponseUtil.readResponse(clientChannel);
+        if (ResponseUtil.isResponseJson(responseData.getKey())) {
+            String jsonResponse = responseData.getValue();
+            Response response = jsonService.fromJson(jsonResponse, Response.class);
+            return response.getResponseData();
+        }
+        else if (ResponseUtil.isResponseXml(responseData.getKey())) {
+            String xmlResponse = responseData.getValue();
             XmlValidator xmlValidator = new XmlValidator(Response.class, "response.xsd");
             if (xmlValidator.validate(xmlResponse)) {
                 Response response = xmlService.fromXml(xmlResponse, Response.class);
@@ -59,6 +67,16 @@ public class Client implements AutoCloseable {
             }
         }
         return Collections.emptyList();
+    }
+
+    private void sendDslAcceptJson(String dsl) {
+        clientChannel.writeNoBreak(String.format("Accept: %s", jsonService.getMediaType()));
+        clientChannel.write(dsl);
+    }
+
+    private void sendDslAcceptXml(String dsl) {
+        clientChannel.writeNoBreak(String.format("Accept: %s", xmlService.getMediaType()));
+        clientChannel.write(dsl);
     }
 
     public static ClientBuilder newBuilder() {

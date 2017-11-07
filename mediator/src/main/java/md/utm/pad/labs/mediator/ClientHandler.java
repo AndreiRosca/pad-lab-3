@@ -1,25 +1,29 @@
 package md.utm.pad.labs.mediator;
 
+import javafx.util.Pair;
 import md.utm.pad.labs.channel.ClientChannel;
+import md.utm.pad.labs.channel.ResponseUtil;
 import md.utm.pad.labs.channel.util.ChannelUtil;
-import md.utm.pad.labs.client.NodeClient;
 import md.utm.pad.labs.response.Response;
 import md.utm.pad.labs.service.JsonService;
 import md.utm.pad.labs.service.XmlService;
 import org.apache.log4j.Logger;
 
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by anrosca on Nov, 2017
  */
 public class ClientHandler implements Runnable {
     private static final Logger LOGGER = Logger.getLogger(ClientHandler.class);
+    private static final Pattern ACCEPT_HEADER_PATTERN = Pattern.compile("Accept: (?<mediaType>.+)");
 
     private ClientChannel channel;
-    private NodeClient nodeClient;
     private JsonService jsonService;
     private XmlService xmlService;
+    private MavenConnection mavenConnection;
 
     private ClientHandler() {
     }
@@ -28,16 +32,30 @@ public class ClientHandler implements Runnable {
     public void run() {
         try {
             while (true) {
-                Optional<String> request = ChannelUtil.readRequest(channel);
-                if (!request.isPresent())
+                Pair<String, String> requestData = ResponseUtil.readResponse(channel);
+                if (requestData.getValue().isEmpty())
                     break;
-                if (!request.get().isEmpty()) {
-                    Response response = nodeClient.submit(request.get());
-                    channel.write(xmlService.toXml(response, Response.class));
-                }
+                Response response = mavenConnection.submit(requestData.getValue());
+                sendResponse(response, requestData.getKey());
             }
+            mavenConnection.close();
         } catch (Exception e) {
             LOGGER.error("Error while handling client", e);
+        }
+    }
+
+    private void sendResponse(Response response, String accepts) {
+        Matcher matcher = ACCEPT_HEADER_PATTERN.matcher(accepts);
+        if (matcher.find()) {
+            String mediaType = matcher.group("mediaType");
+            if (jsonService.getMediaType().equalsIgnoreCase(mediaType)) {
+                channel.writeNoBreak(String.format("Content-Type: %s", jsonService.getMediaType()));
+                channel.write(jsonService.toJson(response));
+            } else if (xmlService.getMediaType().equalsIgnoreCase(mediaType)) {
+                channel.writeNoBreak(String.format("Content-Type: %s", xmlService.getMediaType()));
+                channel.write(xmlService.toXml(response, Response.class));
+            } else
+                throw new RuntimeException("Unknown media type: " + accepts);
         }
     }
 
@@ -47,7 +65,7 @@ public class ClientHandler implements Runnable {
 
     public static final class ClientHandlerBuilder {
         private ClientChannel channel;
-        private NodeClient nodeClient;
+        private MavenConnection mavenConnection;
         private JsonService jsonService;
         private XmlService xmlService;
 
@@ -59,8 +77,8 @@ public class ClientHandler implements Runnable {
             return this;
         }
 
-        public ClientHandlerBuilder setNodeClient(NodeClient nodeClient) {
-            this.nodeClient = nodeClient;
+        public ClientHandlerBuilder setMavenConnection(MavenConnection mavenConnection) {
+            this.mavenConnection = mavenConnection;
             return this;
         }
 
@@ -78,7 +96,7 @@ public class ClientHandler implements Runnable {
             ClientHandler clientHandler = new ClientHandler();
             clientHandler.channel = this.channel;
             clientHandler.jsonService = this.jsonService;
-            clientHandler.nodeClient = this.nodeClient;
+            clientHandler.mavenConnection = this.mavenConnection;
             clientHandler.xmlService = this.xmlService;
             return clientHandler;
         }

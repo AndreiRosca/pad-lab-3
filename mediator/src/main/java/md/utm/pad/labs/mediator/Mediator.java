@@ -37,7 +37,6 @@ public class Mediator implements Runnable {
     public void init() {
         nodeClient = new NodeClient(configuration, jsonService, xmlService);
         nodeClient.detectMavenNode();
-        nodeClient.connectToMaven();
         setUpServerSocket();
     }
 
@@ -51,13 +50,8 @@ public class Mediator implements Runnable {
         }
     }
 
-    public void getAll() {
-        nodeClient.getAll();
-    }
-
     public void close() {
         try {
-            nodeClient.close();
             closeSocket();
             executorService.shutdownNow();
         } catch (Exception e) {
@@ -82,7 +76,7 @@ public class Mediator implements Runnable {
                 executorService.submit(ClientHandler.newBuilder()
                         .setChannel(channel)
                         .setJsonService(jsonService)
-                        .setNodeClient(nodeClient)
+                        .setMavenConnection(new MavenConnection(nodeClient.getMavenNode(), jsonService, xmlService))
                         .setXmlService(xmlService)
                         .build());
             }
