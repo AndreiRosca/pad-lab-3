@@ -1,0 +1,25 @@
+{
+  "type" : "object",
+  "properties" : {
+    "responseData" : {
+      "type" : "array",
+      "items" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "numberOfReportsToPresent" : {
+            "type" : "integer"
+          },
+          "age" : {
+            "type" : "integer"
+          }
+        }
+      }
+    }
+  }
+}

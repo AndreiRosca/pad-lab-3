@@ -6,7 +6,7 @@ import java.util.regex.Pattern;
 
 @XmlRootElement
 public class Student implements Comparable<Student> {
-    private Long id;
+    private long id;
     private String name;
     private int numberOfReportsToPresent;
     private int age;
@@ -77,16 +77,16 @@ public class Student implements Comparable<Student> {
 
         Student student = (Student) o;
 
+        if (id != student.id) return false;
         if (numberOfReportsToPresent != student.numberOfReportsToPresent) return false;
         if (age != student.age) return false;
-        if (id != null ? !id.equals(student.id) : student.id != null) return false;
-        return name.equals(student.name);
+        return name != null ? name.equals(student.name) : student.name == null;
     }
 
     @Override
     public int hashCode() {
-        int result = id != null ? id.hashCode() : 0;
-        result = 31 * result + name.hashCode();
+        int result = (int) (id ^ (id >>> 32));
+        result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + numberOfReportsToPresent;
         result = 31 * result + age;
         return result;

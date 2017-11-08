@@ -1,24 +1,28 @@
 package md.utm.pad.labs.mediator.client;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.jsonschema.JsonSchema;
 import javafx.util.Pair;
 import md.utm.pad.labs.channel.ClientChannel;
 import md.utm.pad.labs.channel.ResponseUtil;
 import md.utm.pad.labs.channel.SocketClientChannel;
-import md.utm.pad.labs.channel.util.ChannelUtil;
 import md.utm.pad.labs.config.MediatorConfiguration;
 import md.utm.pad.labs.domain.Student;
 import md.utm.pad.labs.response.Response;
 import md.utm.pad.labs.service.JsonService;
 import md.utm.pad.labs.service.XmlService;
+import md.utm.pad.labs.validator.JsonValidator;
 import md.utm.pad.labs.validator.XmlValidator;
 import org.apache.log4j.Logger;
 
+import javax.xml.validation.Schema;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
+
 
 /**
  * Created by anrosca on Nov, 2017
@@ -53,8 +57,12 @@ public class Client implements AutoCloseable {
         Pair<String, String> responseData = ResponseUtil.readResponse(clientChannel);
         if (ResponseUtil.isResponseJson(responseData.getKey())) {
             String jsonResponse = responseData.getValue();
-            Response response = jsonService.fromJson(jsonResponse, Response.class);
-            return response.getResponseData();
+            if (JsonValidator.validate(jsonResponse, "/schema.json")) {
+                Response response = jsonService.fromJson(jsonResponse, Response.class);
+                return response.getResponseData();
+            } else {
+                LOGGER.error("Got an invalid json response.");
+            }
         }
         else if (ResponseUtil.isResponseXml(responseData.getKey())) {
             String xmlResponse = responseData.getValue();

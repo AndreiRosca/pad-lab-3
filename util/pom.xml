@@ -12,4 +12,12 @@
     <artifactId>util</artifactId>
 
 
+    <dependencies>
+        <dependency>
+            <groupId>md.utm.pad.labs</groupId>
+            <artifactId>json-schema</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
+
 </project>
